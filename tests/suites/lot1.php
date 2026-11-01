@@ -229,6 +229,27 @@ test('Inscription : fiche ressemblante non vue → 409 avec candidats ; annulati
     statut(api('POST', '/inscriptions', $corps, $j), 201);
 });
 
+test('Une personne n\'existe qu\'une fois : l\'inscrit se reconnaît dans sa fiche existante', function () use ($inscription) {
+    // Fiche créée par un relais, sans compte ni numéro
+    $fiche = (int) Database::insert('personnes', ['sexe' => 'M', 'branche_id' => 2, 'annee_naissance' => 1960, 'precision_naissance' => 'environ']);
+    \App\Repositories\PersonneRepository::ajouterNoms($fiche, [['type' => 'naissance', 'valeur' => 'Gbénou']]);
+    $j = connecter('+2290161000033', 'n33@example.test');
+    $corps = ['client_uuid' => uuid(), 'identite' => ['nom_famille' => 'ZOCLI', 'prenoms' => 'Gbenou', 'sexe' => 'M', 'annee_naissance' => 1961], 'branche_id' => 2, 'consentement' => true];
+    $r = statut(api('POST', '/inscriptions', $corps, $j), 409);
+    egal('identite', $r['error']['cible']);
+    egal($fiche, $r['error']['candidats'][0]['personne']['id']);
+    $id = statut(api('POST', '/inscriptions', $corps + ['personne_id' => $fiche], $j), 201)['data']['personne_id'];
+    egal($fiche, $id, 'aucune seconde fiche');
+    egal('+2290161000033', Database::value('SELECT telephone_whatsapp FROM personnes WHERE id = ?', [$fiche]));
+    egal(1, (int) Database::value("SELECT COUNT(*) FROM journal_actions WHERE action = 'personne.revendication' AND entite_id = ?", [$fiche]));
+    vrai((int) Database::value("SELECT COUNT(*) FROM notifications WHERE type = 'revendication'") >= 2, 'référents prévenus');
+    // Fiche déjà liée à un compte, ou à un autre numéro : refus
+    $j2 = connecter('+2290161000034', 'n34@example.test');
+    statut(api('POST', '/inscriptions', ['client_uuid' => uuid(), 'personne_id' => $fiche, 'branche_id' => 2, 'consentement' => true], $j2), 409, 'fiche prise');
+    statut(api('POST', '/inscriptions', ['client_uuid' => uuid(), 'personne_id' => 6, 'branche_id' => 1, 'consentement' => true], $j2), 409, 'autre numéro');
+    statut(api('POST', '/inscriptions', ['client_uuid' => uuid(), 'personne_id' => 2, 'branche_id' => 1, 'consentement' => true], $j2), 422, 'personne décédée');
+});
+
 test('Inscription : deux noms supplémentaires servent à la recherche', function () use ($inscription) {
     $j = connecter('+2290161000009', 'n9@example.test');
     $id = statut(api('POST', '/inscriptions', $inscription([

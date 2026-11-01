@@ -49,10 +49,17 @@ final class ArbreService
         return $noeud;
     }
 
-    /** Un lien s'affiche s'il est validé et public, ou si le lecteur est référent de la branche de l'enfant. */
+    /**
+     * Membres : liens validés et fiches publiques. Référents : tout l'arbre, provisoires compris.
+     * Une situation privée reste réservée aux référents de sa branche.
+     */
     private static function visible(array $lien, array $fiche, array $u): bool
     {
-        if ($lien['statut'] === 'valide' && !PersonneSerializer::estMasquee($fiche)) {
+        $masquee = PersonneSerializer::estMasquee($fiche);
+        if ($lien['statut'] === 'valide' && !$masquee) {
+            return true;
+        }
+        if (PermissionService::estReferent($u) && !$masquee && $lien['statut'] !== 'prive') {
             return true;
         }
         return PermissionService::couvreBranche($u, $fiche['branche_id'] === null ? null : (int) $fiche['branche_id'])

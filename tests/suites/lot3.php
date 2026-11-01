@@ -53,6 +53,17 @@ test('Arbre référent : provisoires visibles et distingués, privés de sa bran
     egal('confirme', $statuts[21]);
 });
 
+test('Arbre référent d\'une autre branche : voit les provisoires, pas les situations privées', function () {
+    $r = statut(api('GET', '/arbre?racine=11&profondeur=1', null, connecter('+2290100000012')), 200);
+    $ids = [];
+    foreach ($r['data']['foyers'] as $f) {
+        $ids = [...$ids, ...array_map(static fn(array $e): int => $e['personne']['id'], $f['enfants'])];
+    }
+    vrai(in_array(21, $ids, true), 'lien provisoire absent');
+    vrai(!in_array(19, $ids, true) && !str_contains($r['brut'], 'Zinsou'), 'situation privée exposée');
+    vrai(!preg_match('/\+\d{8,}/', $r['brut']), 'téléphone d\'une autre branche');
+});
+
 test('Arbre : charge par niveaux (profondeur bornée, a_suite signalé)', function () {
     $j = connecter('+2290100000020');
     $n = statut(api('GET', '/arbre?racine=2&profondeur=1', null, $j), 200)['data'];
@@ -291,6 +302,7 @@ test('Branches, rôles, variantes et paramètres pilotés sans redéploiement', 
 
     $v = statut(api('POST', '/admin/variantes', ['variante' => 'zoklly', 'forme_canonique' => 'zocli'], $j), 201)['data']['id'];
     statut(api('POST', '/admin/variantes/recalculer', [], $j), 200);
+    \App\Services\NormalisationService::viderCache();
     egal('ZOCLI', \App\Services\NormalisationService::normaliser('Zoklly'));
     statut(api('DELETE', "/admin/variantes/$v", null, $j), 200);
     \App\Services\NormalisationService::viderCache();

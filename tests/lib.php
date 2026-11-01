@@ -121,7 +121,7 @@ function uuid(): string
 
 function identiteTest(string $prenoms, array $extra = []): array
 {
-    return $extra + ['nom_famille' => 'ZOCLI', 'prenoms' => $prenoms, 'sexe' => 'M', 'annee_naissance' => 1990, 'precision_naissance' => 'environ', 'lieu_residence' => 'Cotonou'];
+    return $extra + ['nom_famille' => 'ZOCLI', 'prenoms' => $prenoms, 'sexe' => 'M', 'annee_naissance' => 1990, 'precision_naissance' => 'environ', 'lieu_residence' => 'Cotonou', 'rapprochement_vu' => true];
 }
 
 function reinitialiserBase(): void

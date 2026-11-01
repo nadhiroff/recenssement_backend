@@ -9,8 +9,9 @@ Réponses : `{ "ok": true, "data": ... }` ou `{ "ok": false, "error": { "code", 
 | POST `/auth/otp/request` | public | `{telephone, email?}` envoie un code |
 | POST `/auth/otp/verify` | public | `{telephone, code}` → `{token, utilisateur}` |
 | POST `/auth/logout` · GET `/me` | connecté | déconnexion · profil |
+| POST `/me/email` · POST `/me/email/confirmer` | connecté | changer l'email de connexion, avec code reçu sur la nouvelle adresse |
 | GET `/branches` | connecté | branches actives |
-| POST `/inscriptions` | connecté | parcours complet, idempotent par `client_uuid` |
+| POST `/inscriptions` | connecté | parcours complet, idempotent par `client_uuid` ; `personne_id` pour reprendre sa fiche existante |
 | POST `/inscriptions/tiers` | connecté | `type` : `enfant_mineur`, `parent_decede`, `aine`, `autre` |
 | POST `/rapprochement/candidats` | connecté | fiches au-dessus du seuil |
 | GET `/personnes/recherche?q=` | connecté | recherche sur tous les noms |
@@ -18,6 +19,7 @@ Réponses : `{ "ok": true, "data": ... }` ou `{ "ok": false, "error": { "code", 
 | POST `/personnes/{id}/retrait` | propriétaire | `{confirmation: true}` |
 | POST `/personnes/{id}/branche` | référent | `{branche_id}` |
 | GET `/personnes/{id}/epouses` · POST `/unions` | connecté | foyers |
+| GET `/personnes/{id}/famille` | connecté | parents, conjoints, enfants, selon le rôle |
 | GET `/mes-liens` · GET `/liens/{id}` | connecté | ses liens, détail |
 | POST `/liens/{id}/invitations` | déclarant | `{telephone?}` → `{url, whatsapp_url}` |
 | GET, POST `/confirmations/{token}` | public | `{reponse: oui, non, ne_sait_pas}` |

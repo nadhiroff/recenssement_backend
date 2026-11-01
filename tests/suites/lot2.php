@@ -121,6 +121,10 @@ $inviter = static function (int $lien): string {
     return substr($r['data']['url'], strpos($r['data']['url'], '=') + 1);
 };
 
+test('Invitation : on ne peut pas s\'inviter soi-même', function () use ($lienDeclare) {
+    statut(api('POST', '/liens/' . $lienDeclare() . '/invitations', ['telephone' => '+2290100000020'], connecter('+2290100000020')), 422);
+});
+
 test('Confirmation : Oui fait passer le lien à confirmé, sans compte, une seule fois', function () use ($lienDeclare, $inviter) {
     $l = $lienDeclare();
     $t = $inviter($l);
@@ -344,7 +348,7 @@ test('Journal : UPDATE et DELETE refusés par la base', function () {
 });
 
 test('Journal : chaque type d\'action est tracé (qui, quoi, fiche, quand)', function () {
-    foreach (['auth.connexion', 'personne.creation', 'lien.declaration', 'lien.validation', 'lien.rejet', 'lien.prive', 'lien.confirmation', 'fusion.effectuee', 'fusion.annulee', 'personne.consultation_privee', 'doublon.distinct', 'tache.execution'] as $a) {
+    foreach (['auth.connexion', 'personne.creation', 'consentement.accepte', 'union.declaration', 'lien.declaration', 'lien.validation', 'lien.rejet', 'lien.prive', 'lien.confirmation', 'fusion.effectuee', 'fusion.annulee', 'personne.consultation_privee', 'doublon.distinct', 'tache.execution'] as $a) {
         vrai((int) Database::value('SELECT COUNT(*) FROM journal_actions WHERE action = ?', [$a]) > 0, "action $a absente");
     }
     $l = Database::one("SELECT * FROM journal_actions WHERE action = 'lien.validation' LIMIT 1");

@@ -34,6 +34,8 @@ chgrp -R www-data storage && chmod -R g+rwX storage
 > `schema.sql` commence par supprimer les tables : ne jamais le rejouer sur une base en service.
 > `seed_demo.sql` est fictif (admin de démonstration `admin.demo@example.test` / `DemoAdmin2026!`) : à ne jamais importer en production.
 
+Mise à jour d'une base existante : appliquer dans l'ordre les fichiers de `database/migrations/`.
+
 Tâches planifiées (`crontab -e`) :
 
 ```

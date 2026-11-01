@@ -25,6 +25,10 @@ final class ConfirmationService
             throw new ApiException(409, 'deja_traite', 'Ce lien n\'attend plus de confirmation.');
         }
         $telephone = Validator::telephone($b, 'telephone', false);
+        // Aucun lien sur la seule parole d'une personne : le proche ne peut pas être le déclarant.
+        if ($telephone !== null && $telephone === $u['telephone_whatsapp']) {
+            Validator::echec('telephone', 'Invitez un proche : vous ne pouvez pas vous inviter vous-même.');
+        }
         $token = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
         $id = Database::insert('invitations_confirmation', [
             'lien_id' => $lienId,

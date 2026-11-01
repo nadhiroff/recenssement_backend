@@ -27,18 +27,50 @@ final class InscriptionService
             }
             self::exigerConsentement($b);
             $branche = self::branche($b);
-            $identite = self::identite($b['identite'] ?? null);
-            $identite['champs'] += [
-                'branche_id' => $branche,
-                'telephone_whatsapp' => $u['telephone_whatsapp'],
-                'email' => $u['email'],
-            ];
-            $id = PersonneRepository::creer($identite['champs'], $identite['noms'], (int) $u['id']);
+            $revendiquee = Validator::entier($b, 'personne_id', false, 1);
+            if ($revendiquee !== null) {
+                $id = self::revendiquer($revendiquee, $u);
+                $branche = (int) (Database::value('SELECT branche_id FROM personnes WHERE id = ?', [$id]) ?? $branche);
+            } else {
+                // Une personne n'existe qu'une fois : sa fiche a pu être créée par un enfant ou un relais.
+                $identite = self::identite($b['identite'] ?? null);
+                self::exigerRapprochement('identite', $b['identite'], $branche, $u);
+                $identite['champs'] += [
+                    'branche_id' => $branche,
+                    'telephone_whatsapp' => $u['telephone_whatsapp'],
+                    'email' => $u['email'],
+                ];
+                $id = PersonneRepository::creer($identite['champs'], $identite['noms'], (int) $u['id']);
+                JournalService::ecrire((int) $u['id'], 'personne.creation', 'personne', $id, $branche);
+            }
             Database::run('UPDATE utilisateurs SET personne_id = ? WHERE id = ?', [$id, $u['id']]);
-            self::consentement($id, (int) $u['id']);
-            JournalService::ecrire((int) $u['id'], 'personne.creation', 'personne', $id, $branche);
+            self::consentement($id, (int) $u['id'], $branche);
             return ['personne_id' => $id] + self::parents($id, $b, $branche, $u);
         });
+    }
+
+    /**
+     * « C'est moi » : l'inscrit reprend une fiche existante plutôt que d'en créer une seconde.
+     * Seulement une fiche sans compte, jamais une fiche portant le numéro de quelqu'un d'autre ;
+     * les référents sont prévenus pour contrôler.
+     */
+    private static function revendiquer(int $id, array $u): int
+    {
+        $p = PersonneRepository::trouver($id);
+        if ($p === null || PersonneSerializer::selonRole($p, $u) === null || $p['est_decede']) {
+            Validator::echec('personne_id', 'Fiche introuvable.');
+        }
+        $prise = Database::value('SELECT id FROM utilisateurs WHERE personne_id = ?', [$id]) !== null;
+        if ($prise || ($p['telephone_whatsapp'] !== null && $p['telephone_whatsapp'] !== $u['telephone_whatsapp'])) {
+            throw new ApiException(409, 'fiche_prise', 'Cette fiche est déjà liée à un autre numéro. Contactez le référent de votre branche.');
+        }
+        Database::update('personnes', ['telephone_whatsapp' => $u['telephone_whatsapp'], 'email' => $p['email'] ?? $u['email']], 'id = ?', [$id]);
+        $branche = $p['branche_id'] === null ? null : (int) $p['branche_id'];
+        JournalService::ecrire((int) $u['id'], 'personne.revendication', 'personne', $id, $branche);
+        foreach (Database::ids('SELECT utilisateur_id FROM referents_branche WHERE branche_id = ?', [(int) $branche]) as $ref) {
+            NotificationService::notifier($ref, 'revendication', "Un membre s'est reconnu dans la fiche de {$p['nom_complet']} : vérifiez qu'il s'agit bien de lui.", null, false);
+        }
+        return $id;
     }
 
     public static function pourTiers(array $u, array $b): array
@@ -71,7 +103,7 @@ final class InscriptionService
                 'present_lors_saisie' => $present ? 1 : 0,
                 'note' => Validator::texte($b, 'note', 500, false),
             ]);
-            self::consentement($id, (int) $u['id']);
+            self::consentement($id, (int) $u['id'], $branche);
             $liens = self::parents($id, self::avecDeclarant($b, $type, $u), $branche, $u);
             if ($type === 'parent_decede') {
                 $liens['lien_declarant_id'] = self::relierDeclarant($id, $u);
@@ -124,8 +156,9 @@ final class InscriptionService
         }
     }
 
-    private static function consentement(int $personneId, int $utilisateurId): void
+    private static function consentement(int $personneId, int $utilisateurId, int $branche): void
     {
+        JournalService::ecrire($utilisateurId, 'consentement.accepte', 'personne', $personneId, $branche, ['version' => CONSENTEMENT_VERSION]);
         Database::insert('consentements', [
             'personne_id' => $personneId,
             'utilisateur_id' => $utilisateurId,
@@ -253,12 +286,18 @@ final class InscriptionService
                 continue;
             }
             self::verifierPasDeBoucle($parentId, $enfantId);
+            $existant = LienRepository::actifPourRole($enfantId, $role);
+            if ($existant !== null && (int) $existant['parent_id'] === $parentId) {
+                $res[$role . '_lien_id'] = (int) $existant['id'];
+                continue;
+            }
             $lien = LienRepository::creer($parentId, $enfantId, $role, (int) $u['id']);
             JournalService::ecrire((int) $u['id'], 'lien.declaration', 'lien', $lien, $branche, ['role' => $role]);
             $res[$role . '_lien_id'] = $lien;
         }
         if ($pereId !== null && $mereId !== null) {
-            UnionRepository::creerSiAbsente($pereId, $mereId);
+            $union = UnionRepository::creerSiAbsente($pereId, $mereId);
+            JournalService::ecrire((int) $u['id'], 'union.declaration', 'union', $union, $branche);
         }
         return $res;
     }

@@ -131,10 +131,13 @@ final class LienService
         $liens = Database::all("SELECT parent_id, role_parent FROM liens_parente WHERE enfant_id = ? AND statut = 'valide'", [$enfantId]);
         $parents = array_column($liens, 'parent_id', 'role_parent');
         if (isset($parents['pere'], $parents['mere'])) {
-            Database::run(
-                "UPDATE unions SET statut = 'valide' WHERE epoux_id = ? AND epouse_id = ? AND statut NOT IN ('prive','rejete')",
+            $n = Database::run(
+                "UPDATE unions SET statut = 'valide' WHERE epoux_id = ? AND epouse_id = ? AND statut NOT IN ('prive','rejete','valide')",
                 [$parents['pere'], $parents['mere']]
-            );
+            )->rowCount();
+            if ($n > 0) {
+                JournalService::ecrire(null, 'union.validation', 'personne', $enfantId, null, ['pere' => (int) $parents['pere'], 'mere' => (int) $parents['mere']]);
+            }
         }
     }
 
@@ -177,7 +180,7 @@ final class LienService
         self::transiter($lien, 'en_examen', $utilisateurId, [], 'lien.contestation');
     }
 
-    /** Référents de la branche et membres concernés relancés par la tâche planifiée. @return int relances envoyées */
+    /** Relance des déclarants, par la tâche planifiée. @return int relances envoyées */
     public static function relancer(): int
     {
         $delai = ParametreService::entier('delai_relance_jours', 60);
