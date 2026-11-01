@@ -23,6 +23,8 @@ CREATE TABLE personnes (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   sexe ENUM('M','F','I') NOT NULL DEFAULT 'I',
   annee_naissance SMALLINT NULL,
+  mois_naissance TINYINT UNSIGNED NULL,
+  jour_naissance TINYINT UNSIGNED NULL,
   precision_naissance ENUM('exacte','environ','decennie','inconnue') NOT NULL DEFAULT 'inconnue',
   annee_deces SMALLINT NULL,
   precision_deces ENUM('exacte','environ','decennie','inconnue') NOT NULL DEFAULT 'inconnue',

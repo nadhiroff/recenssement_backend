@@ -132,6 +132,27 @@ test('Admin : paramètres, rôles, tâches et sauvegardes par le panneau', funct
     array_map('unlink', glob(BASE_PATH . '/storage/backups/zocli_*.gz'));
 });
 
+test('Racine du backend : redirige vers l\'administration', function () {
+    $ch = curl_init('http://127.0.0.1:' . TEST_PORT . '/index.php');
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_HEADER => true]);
+    $r = (string) curl_exec($ch);
+    egal(302, (int) curl_getinfo($ch, CURLINFO_HTTP_CODE));
+    vrai(str_contains($r, 'Location: admin/index.php'), 'redirection');
+});
+
+test('Admin : accès perdu rétabli, compte retiré réactivé', function () use ($connexionAdmin) {
+    $n = $connexionAdmin();
+    $id = (int) Database::insert('utilisateurs', ['telephone_whatsapp' => '+2290161000040', 'email' => 'perdu@example.test']);
+    $p = (int) Database::insert('personnes', ['sexe' => 'M', 'statut_fiche' => 'retiree']);
+    Database::run('UPDATE utilisateurs SET personne_id = ?, actif = 0 WHERE id = ?', [$p, $id]);
+    $n->poster('utilisateurs', ['id' => $id, 'faire' => 'compte', 'telephone' => '+2290161000041', 'email' => 'retrouve@example.test']);
+    egal('retrouve@example.test', Database::value('SELECT email FROM utilisateurs WHERE id = ?', [$id]));
+    $n->poster('utilisateurs', ['id' => $id, 'faire' => 'reactiver']);
+    egal(1, (int) Database::value('SELECT actif FROM utilisateurs WHERE id = ?', [$id]));
+    egal('active', Database::value('SELECT statut_fiche FROM personnes WHERE id = ?', [$p]));
+    egal('+2290161000041', Database::value('SELECT telephone_whatsapp FROM personnes WHERE id = ?', [$p]));
+});
+
 test('Droits : un référent n\'accède pas aux pages admin, mais à ses files', function () use ($connexionReferent) {
     $n = $connexionReferent();
     foreach (['branches', 'utilisateurs', 'fusions', 'variantes', 'parametres', 'exports', 'taches'] as $p) {

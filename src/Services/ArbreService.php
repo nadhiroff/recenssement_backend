@@ -151,6 +151,39 @@ final class ArbreService
         }
     }
 
+    /** @return array{parents:array, conjoints:array, enfants:array} */
+    public static function famille(array $p, array $u): array
+    {
+        $id = (int) $p['id'];
+        $liensParents = Database::all("SELECT parent_id AS autre, role_parent, statut FROM liens_parente WHERE enfant_id = ? AND statut <> 'rejete'", [$id]);
+        $liensEnfants = Database::all("SELECT enfant_id AS autre, role_parent, statut FROM liens_parente WHERE parent_id = ? AND statut <> 'rejete'", [$id]);
+        $unions = Database::all(
+            "SELECT IF(epoux_id = ?, epouse_id, epoux_id) AS autre, rang_epouse, statut FROM unions
+             WHERE (epoux_id = ? OR epouse_id = ?) AND statut <> 'rejete' ORDER BY rang_epouse",
+            [$id, $id, $id]
+        );
+        $fiches = PersonneRepository::parIds(array_column([...$liensParents, ...$liensEnfants, ...$unions], 'autre'));
+        $referent = PermissionService::estReferent($u);
+        $vue = static function (array $lignes) use ($fiches, $u, $referent): array {
+            $res = [];
+            foreach ($lignes as $l) {
+                $f = $fiches[(int) $l['autre']] ?? null;
+                if ($f === null || !self::visible($l, $f, $u)) {
+                    continue;
+                }
+                $s = PersonneSerializer::selonRole($f, $u) ?? PersonneSerializer::pourReferent($f);
+                $res[] = [
+                    'personne' => $s,
+                    'role' => $l['role_parent'] ?? null,
+                    'rang' => isset($l['rang_epouse']) ? (int) $l['rang_epouse'] : null,
+                    'statut' => $referent ? $l['statut'] : null,
+                ];
+            }
+            return $res;
+        };
+        return ['parents' => $vue($liensParents), 'conjoints' => $vue($unions), 'enfants' => $vue($liensEnfants)];
+    }
+
     private static function foyer(array &$foyers, int $conjointId, ?array $union, array $fiches, array $u): void
     {
         if (isset($foyers[$conjointId])) {

@@ -13,13 +13,17 @@ final class Auth
         }
         $hash = hash('sha256', $token);
         $u = Database::one(
-            'SELECT u.* FROM sessions_api s JOIN utilisateurs u ON u.id = s.utilisateur_id
+            'SELECT u.*, s.expire_le AS session_expire_le FROM sessions_api s JOIN utilisateurs u ON u.id = s.utilisateur_id
              WHERE s.token_hash = ? AND s.revoque_le IS NULL AND s.expire_le > UTC_TIMESTAMP() AND u.actif = 1',
             [$hash]
         );
         if ($u !== null) {
             $req->user = $u;
             $req->tokenHash = $hash;
+            // Session glissante : un membre qui utilise l'application n'a pas à refaire le parcours du code.
+            if (strtotime($u['session_expire_le'] . ' UTC') < time() + (int) (TOKEN_TTL_DAYS / 2) * 86400) {
+                Database::run('UPDATE sessions_api SET expire_le = ? WHERE token_hash = ?', [gmdate('Y-m-d H:i:s', time() + TOKEN_TTL_DAYS * 86400), $hash]);
+            }
         }
     }
 

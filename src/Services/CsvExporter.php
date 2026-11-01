@@ -40,13 +40,13 @@ final class CsvExporter
                     array_filter($p['noms'], static fn(array $n): bool => !$n['principal'])
                 );
                 $lignes[] = [
-                    $p['id'], $p['nom_complet'], implode(' | ', $autres), $p['sexe'], $p['annee_naissance'], $p['precision_naissance'],
+                    $p['id'], $p['nom_complet'], implode(' | ', $autres), $p['sexe'], $p['annee_naissance'], $p['mois_naissance'], $p['jour_naissance'], $p['precision_naissance'],
                     $p['est_decede'] ? 'oui' : 'non', $p['annee_deces'], $branches[$p['branche_id'] ?? 0] ?? '', $p['telephone_whatsapp'], $p['email'],
                     $p['lieu_residence'], $p['est_privee'] ? 'oui' : 'non', $p['statut_fiche'],
                 ];
             }
         }
-        return self::tableau(['id', 'nom', 'autres_noms', 'sexe', 'annee_naissance', 'precision', 'decede', 'annee_deces', 'branche', 'telephone', 'email', 'residence', 'privee', 'statut'], $lignes);
+        return self::tableau(['id', 'nom', 'autres_noms', 'sexe', 'annee_naissance', 'mois_naissance', 'jour_naissance', 'precision', 'decede', 'annee_deces', 'branche', 'telephone', 'email', 'residence', 'privee', 'statut'], $lignes);
     }
 
     public static function journal(array $lignes): string

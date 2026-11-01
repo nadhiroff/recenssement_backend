@@ -138,6 +138,29 @@ test('Routage de repli ?route= quand la réécriture est absente', function () {
     statut(api('GET', '/inexistant', null, $j), 404);
 });
 
+test('Accès : adresse masquée, compte retiré signalé, session prolongée à l\'usage', function () {
+    $r = statut(api('POST', '/auth/otp/request', ['telephone' => '+2290100000017']), 200);
+    egal('d***@example.test', $r['data']['destination']);
+    $j = connecter('+2290161000031', 'n31@example.test');
+    $h = hash('sha256', $j);
+    Database::run('UPDATE sessions_api SET expire_le = UTC_TIMESTAMP() + INTERVAL 2 DAY WHERE token_hash = ?', [$h]);
+    statut(api('GET', '/me', null, $j), 200);
+    vrai(Database::value('SELECT expire_le FROM sessions_api WHERE token_hash = ?', [$h]) > gmdate('Y-m-d H:i:s', time() + 20 * 86400), 'session non prolongée');
+    Database::run("UPDATE utilisateurs SET actif = 0 WHERE telephone_whatsapp = '+2290161000031'");
+    egal('compte_inactif', statut(api('POST', '/auth/otp/request', ['telephone' => '+2290161000031']), 403)['error']['code']);
+    Database::run("UPDATE utilisateurs SET actif = 1 WHERE telephone_whatsapp = '+2290161000031'");
+});
+
+test('Email de connexion : changé seulement après le code reçu sur la nouvelle adresse', function () {
+    $j = connecter('+2290161000032', 'n32@example.test');
+    $u = (int) Database::value("SELECT id FROM utilisateurs WHERE telephone_whatsapp = '+2290161000032'");
+    statut(api('POST', '/me/email', ['email' => 'nouvelle@example.test'], $j), 200);
+    egal('n32@example.test', Database::value('SELECT email FROM utilisateurs WHERE id = ?', [$u]), 'pas avant le code');
+    statut(api('POST', '/me/email/confirmer', ['code' => '000000'], $j), 401);
+    statut(api('POST', '/me/email/confirmer', ['code' => dernierOtp("email:$u")], $j), 200);
+    egal('nouvelle@example.test', Database::value('SELECT email FROM utilisateurs WHERE id = ?', [$u]));
+});
+
 section('Lot 1 — inscription');
 
 $inscription = static fn(array $extra = []): array => $extra + [
@@ -287,6 +310,21 @@ test('Union : créée à l\'inscription, rang suivant attribué', function () us
     vrai($rang >= 1, 'union absente');
     $id = statut(api('POST', '/unions', ['epoux_id' => 9, 'epouse_id' => 10], $j), 201)['data']['union_id'];
     egal($rang + 1, (int) Database::value('SELECT rang_epouse FROM unions WHERE id = ?', [$id]));
+});
+
+test('Date complète facultative : année seule, date entière, date impossible refusée', function () use ($inscription) {
+    $j = connecter('+2290161000030', 'n30@example.test');
+    statut(api('POST', '/inscriptions', $inscription(['identite' => identiteTest('Date', ['jour_naissance' => 30, 'mois_naissance' => 2, 'annee_naissance' => 1990])]), $j), 422, '30 février');
+    statut(api('POST', '/inscriptions', $inscription(['identite' => identiteTest('Date', ['jour_naissance' => 3])]), $j), 422, 'jour sans mois');
+    $id = statut(api('POST', '/inscriptions', $inscription(['identite' => identiteTest('Date', ['jour_naissance' => 14, 'mois_naissance' => 2, 'annee_naissance' => 1990, 'precision_naissance' => 'environ'])]), $j), 201)['data']['personne_id'];
+    $l = Database::one('SELECT jour_naissance, mois_naissance, precision_naissance FROM personnes WHERE id = ?', [$id]);
+    egal(['jour_naissance' => 14, 'mois_naissance' => 2, 'precision_naissance' => 'exacte'], $l);
+    egal(14, statut(api('GET', '/me', null, $j), 200)['data']['personne']['jour_naissance'], 'propriétaire');
+    vrai(!array_key_exists('jour_naissance', statut(api('GET', "/personnes/$id", null, connecter('+2290100000017')), 200)['data']), 'date complète exposée à un autre membre');
+    statut(api('PATCH', "/personnes/$id", ['jour_naissance' => 31, 'mois_naissance' => 4], $j), 422, '31 avril');
+    statut(api('PATCH', "/personnes/$id", ['jour_naissance' => 1, 'mois_naissance' => 3, 'prenoms' => 'Date Corrigée', 'autres_noms' => [['type' => 'surnom', 'valeur' => 'Dédé']]], $j), 200);
+    egal(3, (int) Database::value('SELECT mois_naissance FROM personnes WHERE id = ?', [$id]));
+    egal(1, (int) Database::value("SELECT COUNT(*) FROM noms_personne WHERE personne_id = ? AND valeur = 'Dédé'", [$id]));
 });
 
 section('Lot 1 — tiers');

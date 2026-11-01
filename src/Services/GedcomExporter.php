@@ -114,10 +114,14 @@ final class GedcomExporter
         return trim((string) preg_replace('/[\/@\r\n]+/', ' ', $s));
     }
 
-    public static function dateGedcom(?int $annee, string $precision): ?string
+    public static function dateGedcom(?int $annee, string $precision, ?int $mois = null, ?int $jour = null): ?string
     {
         if ($annee === null || $precision === 'inconnue') {
             return null;
+        }
+        if ($precision === 'exacte' && $mois !== null) {
+            $m = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'][$mois - 1];
+            return trim(($jour === null ? '' : "$jour ") . "$m $annee");
         }
         return match ($precision) {
             'exacte' => (string) $annee,
@@ -156,7 +160,14 @@ final class GedcomExporter
         if (in_array($p['sexe'], ['M', 'F'], true)) {
             $l[] = '1 SEX ' . $p['sexe'];
         }
-        $n = self::dateGedcom($p['annee_naissance'] === null ? null : (int) $p['annee_naissance'], $p['precision_naissance']);
+        // L'arbre est imprimé : la date complète d'une personne vivante n'en sort pas, seulement son année.
+        $dateComplete = (bool) $p['est_decede'];
+        $n = self::dateGedcom(
+            $p['annee_naissance'] === null ? null : (int) $p['annee_naissance'],
+            $p['precision_naissance'],
+            $dateComplete && $p['mois_naissance'] !== null ? (int) $p['mois_naissance'] : null,
+            $dateComplete && $p['jour_naissance'] !== null ? (int) $p['jour_naissance'] : null
+        );
         if ($n !== null) {
             $l[] = '1 BIRT';
             $l[] = "2 DATE $n";

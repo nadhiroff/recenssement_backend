@@ -106,6 +106,30 @@ final class Validator
         return self::entier($d, $champ, false, 1700, (int) date('Y'));
     }
 
+    /**
+     * Date de naissance : l'année suffit, jour et mois sont facultatifs mais cohérents.
+     * @return array{annee_naissance:?int, mois_naissance:?int, jour_naissance:?int}
+     */
+    public static function dateNaissance(array $d): array
+    {
+        $annee = self::annee($d, 'annee_naissance');
+        $mois = self::entier($d, 'mois_naissance', false, 1, 12);
+        $jour = self::entier($d, 'jour_naissance', false, 1, 31);
+        if ($jour !== null && $mois === null) {
+            self::echec('mois_naissance', 'Indiquez le mois.');
+        }
+        if ($mois !== null && $annee === null) {
+            self::echec('annee_naissance', 'Indiquez l\'année.');
+        }
+        if ($jour !== null && !checkdate((int) $mois, $jour, (int) $annee)) {
+            self::echec('jour_naissance', 'Cette date n\'existe pas.');
+        }
+        if ($jour !== null && mktime(0, 0, 0, (int) $mois, $jour, (int) $annee) > time()) {
+            self::echec('jour_naissance', 'Cette date est dans le futur.');
+        }
+        return ['annee_naissance' => $annee, 'mois_naissance' => $mois, 'jour_naissance' => $jour];
+    }
+
     public static function uuid(array $d, string $champ): string
     {
         $v = (string) ($d[$champ] ?? '');

@@ -159,14 +159,17 @@ final class InscriptionService
                 $noms[] = ['type' => Validator::choix($n, 'type', self::TYPES_NOMS), 'valeur' => Validator::texte($n, 'valeur')];
             }
         }
-        $annee = Validator::annee($d, 'annee_naissance');
+        $date = Validator::dateNaissance($d);
+        $annee = $date['annee_naissance'];
         $precision = Validator::choix($d, 'precision_naissance', self::PRECISIONS, $annee === null ? 'inconnue' : 'environ');
         if ($annee === null) {
             $precision = 'inconnue';
+        } elseif ($date['jour_naissance'] !== null) {
+            $precision = 'exacte';
         }
         $champs = [
             'sexe' => Validator::choix($d, 'sexe', ['M', 'F', 'I'], 'I'),
-            'annee_naissance' => $annee,
+            ...$date,
             'precision_naissance' => $precision,
             'lieu_residence' => Validator::texte($d, 'lieu_residence', 160, false),
             'est_decede' => Validator::booleen($d, 'est_decede') ? 1 : 0,

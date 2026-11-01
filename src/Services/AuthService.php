@@ -9,16 +9,17 @@ use App\Core\Database;
 
 final class AuthService
 {
-    public static function demanderCode(string $telephone, ?string $email): void
+    /** @return string|null adresse masquée vers laquelle le code est parti */
+    public static function demanderCode(string $telephone, ?string $email): ?string
     {
         $canal = OtpService::canal();
         $u = Database::one('SELECT id, email, actif FROM utilisateurs WHERE telephone_whatsapp = ?', [$telephone]);
         if ($u !== null && !(int) $u['actif']) {
-            return; // réponse identique : ne pas révéler l'état du compte
+            throw new ApiException(403, 'compte_inactif', 'Ce compte a été retiré. Contactez le référent de votre branche pour le rétablir.');
         }
         if ($canal === 'whatsapp') {
             OtpService::emettre($telephone, $telephone, $canal, $email);
-            return;
+            return null;
         }
         // Un email fourni ne remplace jamais celui d'un compte existant : le code part vers l'adresse enregistrée.
         $dest = $u['email'] ?? $email;
@@ -26,6 +27,33 @@ final class AuthService
             throw new ApiException(422, 'email_requis', 'Indiquez une adresse email pour recevoir votre code.', ['champ' => 'email']);
         }
         OtpService::emettre($telephone, $dest, $canal, $u === null || $u['email'] === null ? $dest : null);
+        return self::masquer($dest);
+    }
+
+    /** n***@gmail.com : assez pour savoir où regarder, sans livrer l'adresse. */
+    public static function masquer(string $email): string
+    {
+        [$nom, $domaine] = explode('@', $email, 2);
+        return mb_substr($nom, 0, 1) . '***@' . $domaine;
+    }
+
+    public static function demanderChangementEmail(array $u, string $email): void
+    {
+        OtpService::emettre('email:' . $u['id'], $email, 'email', $email);
+    }
+
+    public static function confirmerChangementEmail(array $u, string $code): string
+    {
+        $otp = OtpService::verifier('email:' . $u['id'], $code);
+        $email = (string) $otp['email_destination'];
+        Database::tx(static function () use ($u, $email): void {
+            Database::run('UPDATE utilisateurs SET email = ? WHERE id = ?', [$email, $u['id']]);
+            if ($u['personne_id'] !== null) {
+                Database::run('UPDATE personnes SET email = ? WHERE id = ?', [$email, $u['personne_id']]);
+            }
+            JournalService::ecrire((int) $u['id'], 'compte.email', 'utilisateur', (int) $u['id']);
+        });
+        return $email;
     }
 
     /** @return array{token:string, utilisateur:array} */

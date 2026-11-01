@@ -34,6 +34,8 @@ final class PersonneSerializer
     {
         $s = array_intersect_key($p, array_flip(self::CHAMPS_PUBLICS));
         $s['noms'] = $p['noms'];
+        $s['mois_naissance'] = $p['mois_naissance'];
+        $s['jour_naissance'] = $p['jour_naissance'];
         $s['telephone_whatsapp'] = $p['telephone_whatsapp'];
         $s['email'] = $p['email'];
         $s['lieu_residence'] = $p['lieu_residence'];
@@ -46,6 +48,8 @@ final class PersonneSerializer
         $s = array_intersect_key($p, array_flip(self::CHAMPS_PUBLICS));
         $s['noms'] = $p['noms'];
         $s += [
+            'mois_naissance' => $p['mois_naissance'],
+            'jour_naissance' => $p['jour_naissance'],
             'telephone_whatsapp' => $p['telephone_whatsapp'],
             'email' => $p['email'],
             'lieu_residence' => $p['lieu_residence'],

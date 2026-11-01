@@ -140,6 +140,8 @@ final class FusionService
                 $champs[$c] = $par[$absorbee][$c];
                 if ($c === 'annee_naissance') {
                     $champs['precision_naissance'] = $par[$absorbee]['precision_naissance'];
+                    $champs['mois_naissance'] = $par[$absorbee]['mois_naissance'];
+                    $champs['jour_naissance'] = $par[$absorbee]['jour_naissance'];
                 }
             }
         }

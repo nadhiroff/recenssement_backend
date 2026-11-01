@@ -24,8 +24,8 @@ final class AuthController
         $email = Validator::email($r->body, 'email', false);
         RateLimiter::verifier('otp_ip', (string) Request::ip(), RATE_OTP_IP);
         RateLimiter::verifier('otp_tel', $tel, RATE_OTP_TELEPHONE);
-        AuthService::demanderCode($tel, $email);
-        Response::ok(['envoye' => true, 'canal' => OtpService::canal(), 'expire_dans' => OTP_TTL_SECONDS]);
+        $destination = AuthService::demanderCode($tel, $email);
+        Response::ok(['envoye' => true, 'canal' => OtpService::canal(), 'destination' => $destination, 'expire_dans' => OTP_TTL_SECONDS]);
     }
 
     public static function verifier(Request $r): void
@@ -41,6 +41,20 @@ final class AuthController
         Auth::revoquer($r->tokenHash);
         JournalService::ecrire((int) $r->user['id'], 'auth.deconnexion', 'utilisateur', (int) $r->user['id']);
         Response::ok(['deconnecte' => true]);
+    }
+
+    public static function demanderEmail(Request $r): void
+    {
+        RateLimiter::verifier('otp_tel', 'email' . $r->user['id'], RATE_OTP_TELEPHONE);
+        $email = Validator::email($r->body, 'email');
+        AuthService::demanderChangementEmail($r->user, $email);
+        Response::ok(['destination' => AuthService::masquer($email)]);
+    }
+
+    public static function confirmerEmail(Request $r): void
+    {
+        $code = Validator::texte($r->body, 'code', 6);
+        Response::ok(['email' => AuthService::confirmerChangementEmail($r->user, $code)]);
     }
 
     public static function moi(Request $r): void

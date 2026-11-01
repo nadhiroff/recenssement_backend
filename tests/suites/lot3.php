@@ -81,6 +81,16 @@ test('Paramètre generations_lignee_feminine : limite la descendance par les fil
     vrai(statut(api('GET', '/arbre?racine=4&profondeur=1', null, $j), 200)['data']['foyers'] !== [], 'sans limite');
 });
 
+test('Fiche famille : mêmes règles que l\'arbre, selon le rôle', function () {
+    $m = statut(api('GET', '/personnes/11/famille', null, connecter('+2290100000020')), 200);
+    egal([5, 7], array_map(static fn(array $p): int => $p['personne']['id'], $m['data']['parents']));
+    vrai(!str_contains($m['brut'], 'Zinsou') && !preg_match('/\+\d{8,}/', $m['brut']), 'fiche privée ou téléphone exposé');
+    vrai(!in_array(21, array_map(static fn(array $p): int => $p['personne']['id'], $m['data']['enfants']), true), 'lien non validé visible');
+    $r = statut(api('GET', '/personnes/11/famille', null, connecter('+2290100000010')), 200)['data'];
+    vrai(in_array(19, array_map(static fn(array $p): int => $p['personne']['id'], $r['enfants']), true), 'référent : tout');
+    egal([6, 7], array_map(static fn(array $p): int => $p['personne']['id'], statut(api('GET', '/personnes/5/famille', null, connecter('+2290100000020')), 200)['data']['conjoints']));
+});
+
 section('Lot 3 — suivi');
 
 test('Stats : par branche et par statut, limitées à la branche du référent', function () {
@@ -150,6 +160,15 @@ test('Recette 8 : le fichier GEDCOM s\'ouvre dans Gramps sans erreur', function 
     vrai(str_contains($texte, 'GEDCOM import report: No errors detected'), $texte);
     vrai(!str_contains($texte, 'Traceback'), $texte);
     vrai(preg_match('/^\d+$/m', $texte) === 1, "export vide : $texte");
+});
+
+test('GEDCOM : date complète seulement pour une personne décédée', function () {
+    Database::run('UPDATE personnes SET mois_naissance = 3, jour_naissance = 12 WHERE id IN (2, 9)');
+    Database::run("UPDATE personnes SET precision_naissance = 'exacte' WHERE id IN (2, 9)");
+    $g = GedcomExporter::generer();
+    vrai(str_contains($g, '2 DATE 12 MAR 1910'), 'décédé');
+    vrai(str_contains($g, "2 DATE 1968\r\n") && !str_contains($g, '12 MAR 1968'), 'vivant');
+    Database::run("UPDATE personnes SET mois_naissance = NULL, jour_naissance = NULL, precision_naissance = 'environ' WHERE id IN (2, 9)");
 });
 
 test('CSV : BOM UTF-8, point-virgule, téléphone conservé, formule neutralisée', function () {

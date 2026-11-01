@@ -12,6 +12,7 @@ use App\Core\Validator;
 use App\Repositories\PersonneRepository;
 use App\Repositories\UnionRepository;
 use App\Serializers\PersonneSerializer;
+use App\Services\ArbreService;
 use App\Services\InscriptionService;
 use App\Services\JournalService;
 use App\Services\PermissionService;
@@ -69,18 +70,27 @@ final class PersonneController
         }
         $b = $r->body;
         $champs = [];
-        foreach (['sexe', 'annee_naissance', 'precision_naissance', 'lieu_residence', 'est_decede', 'annee_deces', 'precision_deces', 'email'] as $c) {
+        if (array_intersect(['annee_naissance', 'mois_naissance', 'jour_naissance'], array_keys($b)) !== []) {
+            // La date se corrige d'un bloc : ce qui n'est pas envoyé garde sa valeur.
+            $champs = Validator::dateNaissance($b + array_intersect_key($p, array_flip(['annee_naissance', 'mois_naissance', 'jour_naissance'])));
+        }
+        foreach (['sexe', 'precision_naissance', 'lieu_residence', 'est_decede', 'annee_deces', 'precision_deces', 'email'] as $c) {
             if (!array_key_exists($c, $b)) {
                 continue;
             }
             $champs[$c] = match ($c) {
                 'sexe' => Validator::choix($b, $c, ['M', 'F', 'I']),
-                'annee_naissance', 'annee_deces' => Validator::annee($b, $c),
+                'annee_deces' => Validator::annee($b, $c),
                 'precision_naissance', 'precision_deces' => Validator::choix($b, $c, ['exacte', 'environ', 'decennie', 'inconnue']),
                 'lieu_residence' => Validator::texte($b, $c, 160, false),
                 'est_decede' => Validator::booleen($b, $c) ? 1 : 0,
                 'email' => Validator::email($b, $c, false),
             };
+        }
+        if (isset($champs['annee_naissance']) === false && array_key_exists('annee_naissance', $champs)) {
+            $champs['precision_naissance'] = 'inconnue';
+        } elseif (($champs['jour_naissance'] ?? null) !== null) {
+            $champs['precision_naissance'] = 'exacte';
         }
         Database::tx(static function () use ($champs, $b, $p, $r): void {
             if ($champs !== []) {
@@ -172,6 +182,16 @@ final class PersonneController
             }
         }
         Response::ok($res);
+    }
+
+    /** Parents, conjoints et enfants, avec les mêmes règles de visibilité que l'arbre. */
+    public static function famille(Request $r): void
+    {
+        $p = self::charger((int) $r->params['id']);
+        if (PersonneSerializer::selonRole($p, $r->user) === null) {
+            throw new ApiException(404, 'introuvable', 'Fiche introuvable.');
+        }
+        Response::ok(ArbreService::famille($p, $r->user));
     }
 
     public static function creerUnion(Request $r): void

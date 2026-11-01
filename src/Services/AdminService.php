@@ -102,6 +102,45 @@ final class AdminService
         });
     }
 
+    /** Rétablit l'accès d'un membre qui a perdu son numéro ou son email : vérifier son identité d'abord. */
+    public static function modifierCompte(array $u, int $cibleId, array $d): void
+    {
+        $cible = Database::one('SELECT id, personne_id, telephone_whatsapp FROM utilisateurs WHERE id = ?', [$cibleId]);
+        if ($cible === null) {
+            throw new ApiException(404, 'introuvable', 'Utilisateur introuvable.');
+        }
+        $champs = ['email' => Validator::email($d, 'email', false), 'telephone_whatsapp' => Validator::telephone($d, 'telephone', false)];
+        try {
+            Database::tx(static function () use ($u, $cible, $cibleId, $champs): void {
+                Database::update('utilisateurs', $champs, 'id = ?', [$cibleId]);
+                if ($cible['personne_id'] !== null) {
+                    Database::update('personnes', $champs, 'id = ?', [$cible['personne_id']]);
+                }
+                Database::run('UPDATE sessions_api SET revoque_le = UTC_TIMESTAMP() WHERE utilisateur_id = ? AND revoque_le IS NULL', [$cibleId]);
+                JournalService::ecrire((int) $u['id'], 'compte.modification', 'utilisateur', $cibleId);
+            });
+        } catch (\PDOException $e) {
+            if ($e->getCode() === '23000') {
+                Validator::echec('telephone', 'Ce numéro est déjà utilisé par un autre compte.');
+            }
+            throw $e;
+        }
+    }
+
+    /** Annule un retrait : le compte et sa fiche reviennent, le consentement reste à redonner hors application. */
+    public static function reactiverCompte(array $u, int $cibleId): void
+    {
+        Database::tx(static function () use ($u, $cibleId): void {
+            Database::run('UPDATE utilisateurs SET actif = 1 WHERE id = ?', [$cibleId]);
+            Database::run(
+                "UPDATE personnes p JOIN utilisateurs c ON c.personne_id = p.id SET p.statut_fiche = 'active',
+                 p.telephone_whatsapp = c.telephone_whatsapp, p.email = c.email WHERE c.id = ?",
+                [$cibleId]
+            );
+            JournalService::ecrire((int) $u['id'], 'compte.reactivation', 'utilisateur', $cibleId);
+        });
+    }
+
     /** @return array[] branches qui n'ont pas exactement deux référents */
     public static function branchesSansDeuxReferents(): array
     {

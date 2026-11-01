@@ -13,6 +13,8 @@ return static function (Router $r): void {
     $r->post('/auth/otp/verify', [A::class, 'verifier'], false);
     $r->post('/auth/logout', [A::class, 'deconnexion']);
     $r->get('/me', [A::class, 'moi']);
+    $r->post('/me/email', [A::class, 'demanderEmail']);
+    $r->post('/me/email/confirmer', [A::class, 'confirmerEmail']);
 
     $r->get('/branches', [I::class, 'branches']);
     $r->post('/inscriptions', [I::class, 'creer']);
@@ -24,6 +26,7 @@ return static function (Router $r): void {
     $r->patch('/personnes/{id}', [P::class, 'modifier']);
     $r->post('/personnes/{id}/retrait', [P::class, 'retrait']);
     $r->get('/personnes/{id}/epouses', [P::class, 'epouses']);
+    $r->get('/personnes/{id}/famille', [P::class, 'famille']);
     $r->post('/personnes/{id}/branche', [L::class, 'rattacher']);
     $r->post('/unions', [P::class, 'creerUnion']);
 
