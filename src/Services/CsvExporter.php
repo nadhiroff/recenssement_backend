@@ -39,7 +39,7 @@ final class CsvExporter
         if ($t === null || $t === '') {
             return '';
         }
-        $pays = str_starts_with($t, '+229') ? 4 : max(1, strlen($t) - 9);
+        $pays = str_starts_with($t, '+229') ? 4 : max(2, strlen($t) - 8);
         return substr($t, 0, $pays) . ' ' . trim(chunk_split(substr($t, $pays), 2, ' '));
     }
 
