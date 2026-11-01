@@ -130,7 +130,7 @@ function haut(string $titre, ?array $u, string $actif = '', string $sousTitre = 
     }
     echo '</nav><div class="compte"><div class="qui">' . e($u['email'] ?? '') . '</div>';
     echo '<form method="post" action="' . e(url('deconnexion')) . '" data-confirmer="Voulez-vous vraiment vous déconnecter ?" data-oui="Oui, me déconnecter" data-non="Non, rester connecté">' . champCsrf() . '<button class="petit">Se déconnecter</button></form>';
-    echo '</div></aside><div class="page"><header class="entete"><div><h1>' . e($titre) . '</h1>' . ($sousTitre !== '' ? '<p>' . e($sousTitre) . '</p>' : '') . '</div>';
+    echo '</div></aside><div class="voile" data-menu></div><div class="page"><header class="entete"><button type="button" class="ouvrir-menu" data-menu aria-label="Ouvrir le menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><div class="titre"><h1>' . e($titre) . '</h1>' . ($sousTitre !== '' ? '<p>' . e($sousTitre) . '</p>' : '') . '</div>';
     echo $outils !== '' ? '<div class="outils">' . $outils . '</div>' : '';
     echo '</header><main class="contenu">';
     if (isset($_SESSION['flash'])) {

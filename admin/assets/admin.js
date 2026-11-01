@@ -10,6 +10,14 @@
     }, 5000);
   });
 
+  // Sur téléphone, chaque ligne devient une carte : chaque valeur reprend le nom de sa colonne.
+  document.querySelectorAll('table').forEach(function (t) {
+    var titres = [].map.call(t.querySelectorAll('th'), function (th) { return th.textContent.trim(); });
+    t.querySelectorAll('tbody tr').forEach(function (l) {
+      [].forEach.call(l.children, function (c, i) { if (titres[i]) c.setAttribute('data-l', titres[i]); });
+    });
+  });
+
   function demander(message, oui, non, suite) {
     boite.querySelector('[data-message]').textContent = message;
     var bOui = boite.querySelector('[data-oui]');
@@ -35,6 +43,11 @@
   });
 
   document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-menu]')) {
+      var ouvert = document.querySelector('.barre').classList.toggle('ouvert');
+      document.querySelector('.voile').classList.toggle('ouvert', ouvert);
+      document.querySelector('.ouvrir-menu').setAttribute('aria-expanded', String(ouvert));
+    }
     var ouvrir = e.target.closest('[data-ouvrir]');
     if (ouvrir) document.getElementById(ouvrir.getAttribute('data-ouvrir')).showModal();
     var fermer = e.target.closest('[data-fermer]');
