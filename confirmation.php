@@ -48,6 +48,7 @@ main{max-width:480px;margin:24px auto;background:var(--c);border-radius:16px;pad
 h1{font-size:22px;color:var(--p);margin:0 0 12px}
 button{display:block;width:100%;min-height:52px;font:600 17px system-ui;border-radius:14px;margin-top:12px;border:1.5px solid var(--p);background:transparent;color:var(--p)}
 button.oui{background:var(--p);color:#fff}
+.bouton{display:flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:52px;margin-top:12px;border-radius:14px;color:var(--p);font-weight:600;text-decoration:none}
 </style></head><body><main>
 <h1>Famille ZOCLI</h1>
 <?php if ($message !== null): ?>
@@ -59,6 +60,6 @@ button.oui{background:var(--p);color:#fff}
 <button name="reponse" value="non">Non</button>
 <button name="reponse" value="ne_sait_pas">Je ne sais pas</button>
 </form>
-<p><a href="recensementzocli://confirmation/<?= $e(rawurlencode($token)) ?>">Ouvrir dans l'application</a></p>
+<a class="bouton" href="recensementzocli://confirmation/<?= $e(rawurlencode($token)) ?>">Ouvrir dans l'application</a>
 <?php endif; ?>
 </main></body></html>

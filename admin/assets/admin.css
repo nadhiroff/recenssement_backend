@@ -1,5 +1,5 @@
-:root{--vert:#1F6B4F;--vert-nuit:#123F30;--vert-clair:#E6F0EB;--terre:#C2662D;--or:#D9A520;--fond:#F5F1E8;--carte:#fff;--texte:#1E2420;--doux:#5C655F;--trait:#E5DFD2;--ok:#2E8B57;--att:#D98E04;--err:#B3261E;--info:#2F6FB0;--priv:#6E5A8A;--ombre:0 1px 2px rgba(30,36,32,.06),0 6px 18px rgba(30,36,32,.06);--titre:Georgia,"Times New Roman",serif}
-@media(prefers-color-scheme:dark){:root{--vert:#3FA37C;--vert-nuit:#0E1A15;--vert-clair:#1F2C27;--terre:#E08A50;--or:#E8BE4A;--fond:#121614;--carte:#1C2320;--texte:#ECEFEA;--doux:#9AA39D;--trait:#303A35;--err:#E5736B;--info:#6FA6DC;--priv:#A893C4;--ombre:0 1px 2px rgba(0,0,0,.4)}}
+:root{--vert:#1F6B4F;--vert-nuit:#123F30;--vert-clair:#E6F0EB;--terre:#C2662D;--or:#D9A520;--fond:#F5F1E8;--carte:#fff;--texte:#1E2420;--doux:#5C655F;--trait:#E5DFD2;--ok:#2E8B57;--att:#D98E04;--err:#B3261E;--info:#2F6FB0;--conf:#13868F;--priv:#6E5A8A;--ombre:0 1px 2px rgba(30,36,32,.06),0 6px 18px rgba(30,36,32,.06);--titre:Georgia,"Times New Roman",serif}
+@media(prefers-color-scheme:dark){:root{--vert:#3FA37C;--vert-nuit:#0E1A15;--vert-clair:#1F2C27;--terre:#E08A50;--or:#E8BE4A;--fond:#121614;--carte:#1C2320;--texte:#ECEFEA;--doux:#9AA39D;--trait:#303A35;--err:#E5736B;--info:#6FA6DC;--conf:#3FB8C0;--priv:#A893C4;--ombre:0 1px 2px rgba(0,0,0,.4)}}
 *{box-sizing:border-box;scrollbar-width:none}
 *::-webkit-scrollbar{display:none}
 html,body{height:100%}
@@ -80,13 +80,13 @@ form.ligne input{width:auto;min-width:190px}
 .alerte.ok{border-color:var(--ok)}.alerte.erreur{border-color:var(--err)}.alerte.attention{border-color:var(--att)}
 .badge{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:12px;font-size:12.5px;font-weight:600;background:var(--vert-clair);white-space:nowrap}
 .badge::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--doux)}
-.badge.valide::before,.badge.referent::before{background:var(--ok)}.badge.declare::before,.badge.confirme::before,.badge.relais::before{background:var(--att)}.badge.en_examen::before,.badge.membre::before{background:var(--info)}.badge.prive::before{background:var(--priv)}.badge.rejete::before,.badge.inactif::before{background:var(--err)}.badge.admin::before{background:var(--or)}
+.badge.valide::before,.badge.referent::before{background:var(--ok)}.badge.declare::before,.badge.relais::before{background:var(--att)}.badge.confirme::before{background:var(--conf)}.badge.en_examen::before,.badge.membre::before{background:var(--info)}.badge.prive::before{background:var(--priv)}.badge.rejete::before,.badge.inactif::before{background:var(--err)}.badge.admin::before{background:var(--or)}
 
 /* Barre de statuts */
 .branche{display:grid;grid-template-columns:minmax(120px,170px) minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--trait)}
 .branche:first-of-type{border-top:0}
 .barre-statuts{display:block;width:100%;height:12px;border-radius:6px}
-.s-fond{fill:var(--trait)}.s-valide{fill:var(--ok)}.s-confirme,.s-declare{fill:var(--att)}.s-en_examen{fill:var(--info)}.s-prive{fill:var(--priv)}.s-rejete{fill:var(--err)}
+.s-fond{fill:var(--trait)}.s-valide{fill:var(--ok)}.s-declare{fill:var(--att)}.s-confirme{fill:var(--conf)}.s-en_examen{fill:var(--info)}.s-prive{fill:var(--priv)}.s-rejete{fill:var(--err)}
 .legende{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:12.5px;color:var(--doux)}
 .action-journal{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--trait);font-size:13.5px}
 .action-journal:first-of-type{border-top:0}
