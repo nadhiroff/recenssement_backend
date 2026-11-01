@@ -7,6 +7,17 @@ use App\Core\Database;
 
 final class NotificationService
 {
+    /** Textes des alertes système : sans nom, car ils transitent par des services tiers. */
+    private const TEXTES_PUSH = [
+        'lien_confirme' => 'Un proche a confirmé un de vos liens.',
+        'lien_valide' => 'Un de vos liens a été validé.',
+        'lien_rejete' => 'Un de vos liens n\'a pas été retenu.',
+        'relance' => 'Un de vos liens attend la confirmation d\'un proche.',
+        'a_traiter' => 'Un lien attend votre décision.',
+        'orientation' => 'Un lien vous est orienté.',
+        'revendication' => 'Une fiche est à vérifier.',
+    ];
+
     public static function notifier(int $utilisateurId, string $type, string $message, ?int $lienId = null, bool $email = true): void
     {
         Database::insert('notifications', [
@@ -15,6 +26,7 @@ final class NotificationService
             'message' => $message,
             'lien_id' => $lienId,
         ]);
+        PushService::envoyer($utilisateurId, self::TEXTES_PUSH[$type] ?? 'Du nouveau dans l\'application.', ['type' => $type, 'lien_id' => $lienId]);
         if (!$email) {
             return;
         }

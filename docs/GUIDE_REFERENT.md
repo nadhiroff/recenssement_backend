@@ -2,7 +2,7 @@
 
 Vous êtes le garant des liens de votre branche. Rien n'entre dans l'arbre sans votre décision.
 
-**Où travailler ?** Dans l'application (onglet Référent) ou sur l'ordinateur, plus confortable pour les longues listes (`/admin`, avec votre numéro et un code).
+**Où travailler ?** Dans l'application, onglet Référent. Le site web est réservé à l'administrateur général.
 
 **Le parcours d'un lien**
 

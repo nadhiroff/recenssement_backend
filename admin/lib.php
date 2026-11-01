@@ -50,7 +50,7 @@ function utilisateurCourant(): ?array
         return null;
     }
     $u = Database::one('SELECT * FROM utilisateurs WHERE id = ? AND actif = 1', [$id]);
-    if ($u === null || !PermissionService::estReferent($u)) {
+    if ($u === null || !PermissionService::estAdmin($u)) {
         $_SESSION = [];
         return null;
     }
@@ -87,12 +87,9 @@ function action(callable $fn, string $succes, string $page, array $q = []): neve
 
 function haut(string $titre, ?array $u, string $actif = ''): void
 {
-    $menu = ['tableau' => 'Tableau de bord', 'file' => 'File de validation', 'doublons' => 'Doublons', 'journal' => 'Journal'];
-    if ($u !== null && PermissionService::estAdmin($u)) {
-        $menu = ['tableau' => 'Tableau de bord', 'branches' => 'Fondateur et branches', 'utilisateurs' => 'Utilisateurs et rôles',
-            'file' => 'File de validation', 'doublons' => 'Doublons', 'fusions' => 'Fusions', 'variantes' => 'Variantes de noms',
-            'parametres' => 'Paramètres', 'journal' => 'Journal', 'exports' => 'Exports', 'taches' => 'Tâches et sauvegardes'];
-    }
+    $menu = ['tableau' => 'Tableau de bord', 'branches' => 'Fondateur et branches', 'utilisateurs' => 'Utilisateurs et rôles',
+        'file' => 'File de validation', 'doublons' => 'Doublons', 'fusions' => 'Fusions', 'variantes' => 'Variantes de noms',
+        'parametres' => 'Paramètres', 'journal' => 'Journal', 'exports' => 'Exports', 'taches' => 'Tâches et sauvegardes'];
     echo '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">';
     echo '<title>' . e($titre) . ' — ' . e(APP_NAME) . '</title><link rel="stylesheet" href="assets/admin.css"></head><body>';
     echo '<header><strong>' . e(APP_NAME) . '</strong>';

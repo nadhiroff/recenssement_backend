@@ -13,11 +13,11 @@ Comparaison ligne à ligne de la note « Recensement famille ZOCLI – Note de p
 | Inscription d'un tiers avec trace du déclarant | Conforme | Enfant mineur, parent décédé, aîné avec présence attestée |
 | Rapprochement, choix par l'inscrit | Conforme | Pour les parents, les tiers et l'inscrit lui-même |
 | Confirmation par lien WhatsApp | Conforme | Lien `wa.me`, page sans compte, réponse Oui / Non / Je ne sais pas |
-| Espace référent | Conforme | Valider, consulter les aînés, privé, rejeter, rattacher, dans l'app et sur le web |
+| Espace référent | Conforme | Valider, consulter les aînés, privé, rejeter, rattacher, dans l'application. Le panneau web est réservé à l'administrateur, à la demande du commanditaire |
 | Doublons hebdomadaires, fusion ou séparation | Conforme | Tâche planifiée, jamais à chaque requête |
 | Arbre par branche, enfants par mère, provisoires distingués | Conforme | Membres : validés. Référents : tout, sauf les situations privées d'une autre branche |
 | Administration | Conforme | Branches, rôles, annulation de fusion, exports |
-| Suivi : compteurs et journal | Conforme | Dans l'app et sur le web |
+| Suivi : compteurs et journal | Conforme | Référents dans l'application, administrateur sur le web |
 
 ## Règles métier
 
@@ -60,6 +60,10 @@ Comparaison ligne à ligne de la note « Recensement famille ZOCLI – Note de p
 1. **Code par email au lieu de WhatsApp.** Le cahier demande WhatsApp. Le développement est prêt (`WhatsAppOtpSender`, activé par `OTP_CHANNEL`) mais il faut un compte WhatsApp Business ou un prestataire, et un coût par message à décider. Tant que l'email est utilisé, le numéro n'est pas prouvé : quelqu'un peut créer un compte sur un numéro libre avec son propre email.
 2. **Propriété du dépôt.** À transférer à l'administrateur général et à passer en privé. Les fichiers de la note restent dans l'historique du dépôt frontend public tant que celui-ci n'est pas réécrit ou recréé.
 3. **Recette non réalisée.** Le cahier accepte un lot quand les scénarios passent sur un Android d'entrée de gamme en 3G. Les tests ont été faits en automatique et sur iPhone, pas sur cet appareil.
+
+## Ajouts demandés par le commanditaire, hors cahier
+
+Date de naissance complète facultative ; alertes système sur téléphone, texte sans nom de personne, à déclarer dans le dossier APDP (Expo, Apple et Google) ; panneau web réservé à l'administrateur.
 
 ## Limite connue
 

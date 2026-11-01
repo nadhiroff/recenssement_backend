@@ -33,3 +33,18 @@ form.ligne input{width:auto;min-width:160px}
 .connexion{max-width:420px;margin:48px auto}
 .deux{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
 @media(max-width:480px){main{padding:16px}}
+
+/* Connexion : une seule carte centrée, sans défilement */
+html:has(.page-connexion){height:100%;overflow:hidden}
+.page-connexion{height:100dvh;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:16px;background:var(--p)}
+.acces{width:100%;max-width:380px;background:var(--c);border-radius:20px;padding:28px 24px;box-shadow:0 12px 32px rgba(0,0,0,.25)}
+.acces .marque{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.acces .losange{width:40px;height:40px;flex:none;background:var(--s);transform:rotate(45deg);border-radius:8px;border:3px solid var(--a)}
+.acces .marque strong{display:block;font-size:18px;line-height:1.25}
+.acces .marque span{font-size:13px;color:var(--m)}
+.acces h1{font-size:22px;margin:0 0 4px}
+.acces p{margin:0}
+.acces label{margin-top:14px}
+.acces button{width:100%;margin-top:18px}
+.acces .lien{background:none;border:0;color:var(--p);margin-top:8px;font-weight:600}
+.acces .alerte{margin:12px 0 0;padding:8px 12px;font-size:14px;background:var(--f)}

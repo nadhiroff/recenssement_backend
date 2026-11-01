@@ -32,7 +32,8 @@ Réponses : `{ "ok": true, "data": ... }` ou `{ "ok": false, "error": { "code", 
 | POST `/fusions/{id}/annuler` | admin | restitution exacte |
 | GET `/arbre?branche=&racine=&profondeur=` | connecté | 1 à 4 niveaux, enfants groupés par foyer |
 | GET `/stats` · GET `/journal` | référent | sa branche ; admin : tout |
-| GET `/notifications` · POST `/notifications/{id}/lu` | connecté | alertes |
+| GET `/notifications` · POST `/notifications/{id}/lu` · POST `/notifications/lu` | connecté | alertes |
+| POST `/me/appareils` | connecté | `{token, plateforme}` déclare le téléphone pour les alertes système |
 | GET `/export/gedcom` · GET `/export/csv` | admin | exports |
 | GET `/taches` · POST `/taches/{nom}/lancer` | admin | `detect_doublons`, `relances`, `backup` |
 | POST `/admin/branches` · PATCH `/admin/branches/{id}` | admin | branches |

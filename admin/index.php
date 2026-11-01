@@ -29,7 +29,7 @@ if ($page !== 'connexion' && $u === null) {
 require __DIR__ . "/pages/$page.php";
 
 // Pseudo-cron pour les hébergeurs sans cron : après la réponse, jamais avant.
-if ($u !== null && $_SERVER['REQUEST_METHOD'] === 'GET' && \App\Services\PermissionService::estAdmin($u)) {
+if ($u !== null && $_SERVER['REQUEST_METHOD'] === 'GET') {
     if (function_exists('fastcgi_finish_request')) {
         fastcgi_finish_request();
     }

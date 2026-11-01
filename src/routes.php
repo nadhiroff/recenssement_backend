@@ -13,6 +13,7 @@ return static function (Router $r): void {
     $r->post('/auth/otp/verify', [A::class, 'verifier'], false);
     $r->post('/auth/logout', [A::class, 'deconnexion']);
     $r->get('/me', [A::class, 'moi']);
+    $r->post('/me/appareils', [A::class, 'enregistrerAppareil']);
     $r->post('/me/email', [A::class, 'demanderEmail']);
     $r->post('/me/email/confirmer', [A::class, 'confirmerEmail']);
 
@@ -47,6 +48,7 @@ return static function (Router $r): void {
     $r->post('/fusions/{id}/annuler', [L::class, 'annulerFusion']);
 
     $r->get('/notifications', [L::class, 'notifications']);
+    $r->post('/notifications/lu', [L::class, 'toutLu']);
     $r->post('/notifications/{id}/lu', [L::class, 'notificationLue']);
 
     $r->get('/arbre', [S::class, 'arbre']);

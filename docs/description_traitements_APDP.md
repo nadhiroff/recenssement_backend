@@ -22,7 +22,8 @@ Document de travail à compléter par le responsable désigné par la famille, a
 - membres : arbre validé, sans téléphone, sans email, sans lieu de résidence, sans fiche privée ;
 - référents : fiches et téléphones de leur branche ;
 - administrateur général : ensemble des données ;
-- hébergeur et prestataire d'envoi d'emails, en sous-traitance (à préciser).
+- hébergeur et prestataire d'envoi d'emails, en sous-traitance (à préciser) ;
+- Expo, Apple et Google pour les alertes système : ils reçoivent un identifiant de téléphone et un texte générique, sans nom de personne.
 Les membres vivant à l'étranger et l'hébergement éventuel hors du Bénin sont à examiner au titre des transferts.
 
 **Durées de conservation (à valider) :** fiches et arbre pendant la durée de vie du projet familial ; codes de connexion 10 minutes ; sessions 30 jours ; invitations 30 jours ; journal : à fixer ; sauvegardes : rotation sur 7 jours et 4 semaines.

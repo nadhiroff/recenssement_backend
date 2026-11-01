@@ -21,6 +21,10 @@ define('MAIL_PASSWORD', 'CHANGER');
 define('MAIL_FROM_ADDRESS', 'CHANGER');
 define('MAIL_FROM_NAME', APP_NAME);
 
+define('PUSH_DRIVER', getenv('ZOCLI_TEST_DB') ? 'log' : 'expo');   // 'expo' | 'log' (aucun envoi)
+
+// Connexion admin : mot de passe puis code par email. Sans code en développement seulement.
+define('ADMIN_OTP_REQUIS', APP_ENV !== 'dev');
 define('OTP_CHANNEL', 'email');          // 'email' | 'whatsapp'
 define('OTP_TTL_SECONDS', 600);
 define('OTP_MAX_ATTEMPTS', 5);

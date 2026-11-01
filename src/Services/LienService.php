@@ -106,10 +106,10 @@ final class LienService
         return [$f[(int) $lien['parent_id']]['nom_complet'] ?? '', $f[(int) $lien['enfant_id']]['nom_complet'] ?? ''];
     }
 
-    private static function notifierDeclarant(array $lien, string $type, string $message): void
+    private static function notifierDeclarant(array $lien, string $type, string $message, bool $email = true): void
     {
         if ($lien['declarant_utilisateur_id'] !== null) {
-            NotificationService::notifier((int) $lien['declarant_utilisateur_id'], $type, $message, (int) $lien['id']);
+            NotificationService::notifier((int) $lien['declarant_utilisateur_id'], $type, $message, (int) $lien['id'], $email);
         }
     }
 
@@ -173,11 +173,30 @@ final class LienService
     public static function confirmer(array $lien, ?int $utilisateurId): void
     {
         self::transiter($lien, 'confirme', $utilisateurId, ['confirme_par_utilisateur_id' => $utilisateurId, 'confirme_le' => gmdate('Y-m-d H:i:s')], 'lien.confirmation');
+        [$parent, $enfant] = self::nomsDuLien($lien);
+        self::notifierDeclarant($lien, 'lien_confirme', "Un proche a confirmé le lien entre $parent et $enfant. Le référent va maintenant l'examiner.", false);
+        self::notifierReferents($lien, "Le lien entre $parent et $enfant a été confirmé par un proche et attend votre décision.");
     }
 
     public static function contester(array $lien, ?int $utilisateurId): void
     {
         self::transiter($lien, 'en_examen', $utilisateurId, [], 'lien.contestation');
+        [$parent, $enfant] = self::nomsDuLien($lien);
+        self::notifierReferents($lien, "Un proche conteste le lien entre $parent et $enfant : consultez les aînés.");
+    }
+
+    /** Référents de la branche, sauf ceux que le lien concerne : ils ne peuvent pas le traiter. */
+    private static function notifierReferents(array $lien, string $message): void
+    {
+        $referents = Database::all(
+            'SELECT u.id, u.personne_id FROM referents_branche r JOIN utilisateurs u ON u.id = r.utilisateur_id WHERE r.branche_id = ? AND u.actif = 1',
+            [$lien['branche_id']]
+        );
+        foreach ($referents as $r) {
+            if (!PermissionService::conflitInteret($r, $lien)) {
+                NotificationService::notifier((int) $r['id'], 'a_traiter', $message, (int) $lien['id'], false);
+            }
+        }
     }
 
     /** Relance des déclarants, par la tâche planifiée. @return int relances envoyées */

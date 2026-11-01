@@ -2,7 +2,7 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS file_sync, notifications, rate_limits, taches_execution, journal_actions, fusions,
+DROP TABLE IF EXISTS appareils_push, file_sync, notifications, rate_limits, taches_execution, journal_actions, fusions,
   paires_distinctes, doublons_suspects, parametres, variantes_noms, sessions_api, otp_codes, consentements,
   invitations_confirmation, declarations_tiers, relais_branche, referents_branche, utilisateurs, unions,
   liens_parente, noms_tokens, noms_personne, personnes, branches;
@@ -338,6 +338,18 @@ CREATE TABLE notifications (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   KEY idx_notif_user (utilisateur_id, lu_le),
   CONSTRAINT fk_notif_user FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE appareils_push (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  utilisateur_id INT UNSIGNED NOT NULL,
+  token VARCHAR(190) NOT NULL,
+  plateforme ENUM('ios','android') NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_appareil_token (token),
+  KEY idx_appareil_user (utilisateur_id),
+  CONSTRAINT fk_appareil_user FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE rate_limits (

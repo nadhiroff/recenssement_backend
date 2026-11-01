@@ -57,20 +57,13 @@ $connexionAdmin = static function (): Navigateur {
     return $n;
 };
 
-$connexionReferent = static function (): Navigateur {
-    $n = new Navigateur();
-    $n->poster('connexion', ['mode' => 'referent', 'telephone' => '+2290100000010']);
-    $n->poster('connexion', ['mode' => 'code', 'code' => dernierOtp('+2290100000010')]);
-    return $n;
-};
-
 test('Admin : mot de passe faux refusé, sans page protégée sans session', function () {
     $n = new Navigateur();
     $n->aller('index.php?p=tableau');
     egal(302, $n->http);
     vrai(str_contains($n->lieu, 'p=connexion'), 'redirection');
     $n->poster('connexion', ['mode' => 'admin', 'email' => 'admin.demo@example.test', 'mot_de_passe' => 'mauvais']);
-    vrai(str_contains($n->corps, 'Identifiants incorrects'), 'message');
+    vrai(str_contains($n->corps, 'mot de passe incorrect'), 'message');
 });
 
 test('Admin : connexion en deux facteurs, en-têtes de sécurité, cookie durci', function () use ($connexionAdmin) {
@@ -153,37 +146,40 @@ test('Admin : accès perdu rétabli, compte retiré réactivé', function () use
     egal('+2290161000041', Database::value('SELECT telephone_whatsapp FROM personnes WHERE id = ?', [$p]));
 });
 
-test('Droits : un référent n\'accède pas aux pages admin, mais à ses files', function () use ($connexionReferent) {
-    $n = $connexionReferent();
-    foreach (['branches', 'utilisateurs', 'fusions', 'variantes', 'parametres', 'exports', 'taches'] as $p) {
-        $n->aller("index.php?p=$p");
-        egal(403, $n->http, $p);
-    }
-    foreach (['tableau', 'file', 'doublons', 'journal'] as $p) {
-        $n->aller("index.php?p=$p");
-        egal(200, $n->http, $p);
-    }
-    $n->aller('index.php?p=exports&telecharger=csv');
-    egal(403, $n->http);
-    vrai(!str_contains($n->corps, '+229'), 'CSV exposé');
-});
-
-test('Droits : un membre n\'entre pas dans le panneau', function () {
+test('Connexion : page unique, sans création de compte ni accès référent', function () {
     $n = new Navigateur();
-    $n->poster('connexion', ['mode' => 'referent', 'telephone' => '+2290100000020']);
-    $n->poster('connexion', ['mode' => 'code', 'code' => '123456']);
-    $n->aller('index.php?p=tableau');
-    egal(302, $n->http);
+    $n->aller('index.php?p=connexion');
+    egal(1, substr_count($n->corps, '<form'), 'un seul formulaire');
+    vrai(str_contains($n->corps, 'page-connexion') && !preg_match('/créer|référent|inscri/i', $n->corps), 'contenu');
 });
 
-test('Référent web : valide un lien par le panneau, conflit affiché', function () use ($connexionReferent) {
+test('Droits : seul l\'administrateur entre, ni référent ni membre', function () {
+    foreach (['+2290100000010', '+2290100000020'] as $tel) {
+        $n = new Navigateur();
+        $n->poster('connexion', ['mode' => 'referent', 'telephone' => $tel]);
+        $n->aller('index.php?p=tableau');
+        egal(302, $n->http, $tel);
+    }
+    $n = new Navigateur();
+    $n->poster('connexion', ['mode' => 'admin', 'email' => 'kossi.demo@example.test', 'mot_de_passe' => 'DemoAdmin2026!']);
+    vrai(str_contains($n->corps, 'mot de passe incorrect'), 'référent refusé');
+});
+
+test('Administrateur unique : personne d\'autre ne peut le devenir', function () use ($connexionAdmin) {
+    statut(api('POST', '/admin/utilisateurs/12/role', ['role' => 'admin'], jetonDirect(1)), 409);
+    $n = $connexionAdmin();
+    $n->aller('index.php?p=utilisateurs');
+    egal(1, substr_count($n->corps, '<option value="admin"'), 'option réservée au compte admin');
+});
+
+test('Admin web : valide un lien, conflit affiché', function () use ($connexionAdmin) {
     Database::run("UPDATE liens_parente SET statut = 'confirme' WHERE id = 22");
-    $n = $connexionReferent();
+    $n = $connexionAdmin();
     $n->aller('index.php?p=lien&id=22');
     vrai(str_contains($n->corps, 'Valider'), 'bouton');
     $n->poster('file', ['id' => 22, 'faire' => 'valider']);
     egal('valide', Database::value('SELECT statut FROM liens_parente WHERE id = 22'));
-    $conflit = (int) Database::insert('liens_parente', ['parent_id' => 10, 'enfant_id' => (int) Database::insert('personnes', ['sexe' => 'M', 'branche_id' => 1]), 'role_parent' => 'mere', 'statut' => 'confirme']);
+    $conflit = (int) Database::insert('liens_parente', ['parent_id' => 25, 'enfant_id' => (int) Database::insert('personnes', ['sexe' => 'M', 'branche_id' => 1]), 'role_parent' => 'pere', 'statut' => 'confirme']);
     $n->aller("index.php?p=lien&id=$conflit");
     vrai(str_contains($n->corps, 'autre référent') && !str_contains($n->corps, '>Valider<'), 'conflit');
 });

@@ -84,6 +84,9 @@ final class AdminService
         if ($cible === null) {
             throw new ApiException(404, 'introuvable', 'Utilisateur introuvable.');
         }
+        if ($role === 'admin' && $cible['role_global'] !== 'admin') {
+            throw new ApiException(409, 'admin_unique', 'L\'administrateur général est unique : son compte se crée directement en base.');
+        }
         if ($cible['role_global'] === 'admin' && $role !== 'admin'
             && (int) Database::value("SELECT COUNT(*) FROM utilisateurs WHERE role_global = 'admin' AND actif = 1") <= 1) {
             throw new ApiException(409, 'dernier_admin', 'Il doit rester au moins un administrateur.');

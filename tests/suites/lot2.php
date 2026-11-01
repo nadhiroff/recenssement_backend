@@ -168,6 +168,59 @@ test('Page web de confirmation : question affichée, réponse enregistrée, éch
     egal('confirme', Database::value('SELECT statut FROM liens_parente WHERE id = ?', [$l]));
 });
 
+section('Lot 2 — alertes');
+
+$dernierPush = static function (): array {
+    $l = file(BASE_PATH . '/storage/logs/push.log', FILE_IGNORE_NEW_LINES) ?: [];
+    return json_decode(substr((string) end($l), strpos((string) end($l), '{')), true) ?? [];
+};
+
+test('Alertes : appareil enregistré, oublié à la déconnexion, jeton invalide refusé', function () {
+    $j = connecter('+2290100000020');
+    statut(api('POST', '/me/appareils', ['token' => 'nimporte', 'plateforme' => 'ios'], $j), 422);
+    statut(api('POST', '/me/appareils', ['token' => 'ExponentPushToken[deconnexion]', 'plateforme' => 'ios'], $j), 200);
+    statut(api('POST', '/me/appareils', ['token' => 'ExponentPushToken[deconnexion]', 'plateforme' => 'ios'], $j), 200, 'sans doublon');
+    egal(1, (int) Database::value("SELECT COUNT(*) FROM appareils_push WHERE token = 'ExponentPushToken[deconnexion]'"));
+    statut(api('POST', '/auth/logout', ['push_token' => 'ExponentPushToken[deconnexion]'], $j), 200);
+    egal(0, (int) Database::value("SELECT COUNT(*) FROM appareils_push WHERE token = 'ExponentPushToken[deconnexion]'"));
+});
+
+test('Alertes : un téléphone passé à un autre compte ne prévient plus l\'ancien', function () {
+    statut(api('POST', '/me/appareils', ['token' => 'ExponentPushToken[partage]', 'plateforme' => 'ios'], connecter('+2290100000020')), 200);
+    statut(api('POST', '/me/appareils', ['token' => 'ExponentPushToken[partage]', 'plateforme' => 'ios'], connecter('+2290100000017')), 200);
+    egal(10, (int) Database::value("SELECT utilisateur_id FROM appareils_push WHERE token = 'ExponentPushToken[partage]'"));
+    Database::run("DELETE FROM appareils_push WHERE token = 'ExponentPushToken[partage]'");
+});
+
+test('Alertes : confirmation prévient déclarant et référents, texte sans aucun nom', function () use ($lienDeclare, $inviter, $dernierPush) {
+    statut(api('POST', '/me/appareils', ['token' => 'ExponentPushToken[referent]', 'plateforme' => 'ios'], connecter('+2290100000010')), 200);
+    $l = $lienDeclare();
+    statut(api('POST', '/confirmations/' . $inviter($l), ['reponse' => 'oui']), 200);
+    egal(1, (int) Database::value("SELECT COUNT(*) FROM notifications WHERE utilisateur_id = 12 AND type = 'lien_confirme' AND lien_id = ?", [$l]), 'déclarant');
+    egal(1, (int) Database::value("SELECT COUNT(*) FROM notifications WHERE utilisateur_id = 3 AND type = 'a_traiter' AND lien_id = ?", [$l]), 'référent');
+    $p = $dernierPush();
+    egal('Un lien attend votre décision.', $p['body']);
+    egal($l, $p['data']['lien_id']);
+    vrai(str_contains((string) Database::value("SELECT message FROM notifications WHERE utilisateur_id = 3 AND lien_id = ?", [$l]), 'Séna'), 'détail dans l\'application');
+    vrai(!str_contains((string) file_get_contents(BASE_PATH . '/storage/logs/push.log'), 'ZOCLI'), 'nom transmis à un service tiers');
+    Database::run("DELETE FROM appareils_push WHERE token = 'ExponentPushToken[referent]'");
+});
+
+test('Alertes : une seule marquée lue, puis toutes ; jamais celles d\'un autre', function () {
+    $j = connecter('+2290100000020');
+    \App\Services\NotificationService::notifier(12, 'relance', 'Test 1', null, false);
+    \App\Services\NotificationService::notifier(12, 'relance', 'Test 2', null, false);
+    \App\Services\NotificationService::notifier(10, 'relance', 'Autre', null, false);
+    $id = (int) Database::value("SELECT id FROM notifications WHERE message = 'Test 1'");
+    statut(api('POST', "/notifications/$id/lu", [], $j), 200);
+    vrai(Database::value('SELECT lu_le FROM notifications WHERE id = ?', [$id]) !== null, 'lue');
+    statut(api('POST', '/notifications/lu', [], $j), 200);
+    egal(0, (int) Database::value('SELECT COUNT(*) FROM notifications WHERE utilisateur_id = 12 AND lu_le IS NULL'));
+    egal(1, (int) Database::value("SELECT COUNT(*) FROM notifications WHERE message = 'Autre' AND lu_le IS NULL"));
+    statut(api('POST', "/notifications/" . Database::value("SELECT id FROM notifications WHERE message = 'Autre'") . '/lu', [], $j), 200);
+    egal(1, (int) Database::value("SELECT COUNT(*) FROM notifications WHERE message = 'Autre' AND lu_le IS NULL"), 'alerte d\'un autre');
+});
+
 section('Lot 2 — situations délicates');
 
 test('Passer en privé : motif, fiche masquée aux membres, visible du référent', function () {

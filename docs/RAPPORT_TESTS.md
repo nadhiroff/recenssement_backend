@@ -4,8 +4,8 @@ Dernière exécution : 1er novembre 2026, sur PHP 8.5 et MySQL 8.4.
 
 | Suite | Résultat |
 |---|---|
-| Backend et admin web (`php tests/run.php`) | 105 réussis, 0 échoué |
-| Frontend Jest (`npx jest`) | 17 réussis, 0 échoué |
+| Backend et admin web (`php tests/run.php`) | 110 réussis, 0 échoué |
+| Frontend Jest (`npx jest`) | 21 réussis, 0 échoué |
 | TypeScript, ESLint, `expo-doctor` | sans erreur (20/20 pour expo-doctor) |
 | `expo export` Android et web | sans erreur |
 | Gramps 6.0.6 (Docker) | « GEDCOM import report: No errors detected » |
@@ -39,6 +39,7 @@ Dernière exécution : 1er novembre 2026, sur PHP 8.5 et MySQL 8.4.
 - Téléphone Android réel et émulateur : la recette du cahier des charges exige ce test. L'application a été utilisée sur iPhone par le commanditaire, sans test automatisé.
 - Barre clavier : elle n'existe pas sur le web et n'a donc pas été testée automatiquement, seulement à vérifier sur iPhone.
 - Durée d'une inscription par une vraie personne, à chronométrer : l'objectif est de moins de 5 minutes.
+- Alertes système réelles : mécanisme testé côté serveur et texte contrôlé, mais réception à vérifier sur téléphone. Glissement arrière iOS et barre clavier : à vérifier sur iPhone.
 - Envoi réel d'un email : seule l'authentification SMTP a été vérifiée.
 - Hébergement mutualisé réel.
 
@@ -114,6 +115,10 @@ Dernière exécution : 1er novembre 2026, sur PHP 8.5 et MySQL 8.4.
 - ✓ Confirmation : le déclarant ne confirme pas son propre lien
 - ✓ Confirmation : invitation expirée ou jeton inconnu
 - ✓ Page web de confirmation : question affichée, réponse enregistrée, échappement
+- ✓ Alertes : appareil enregistré, oublié à la déconnexion, jeton invalide refusé
+- ✓ Alertes : un téléphone passé à un autre compte ne prévient plus l'ancien
+- ✓ Alertes : confirmation prévient déclarant et référents, texte sans aucun nom
+- ✓ Alertes : une seule marquée lue, puis toutes ; jamais celles d'un autre
 - ✓ Passer en privé : motif, fiche masquée aux membres, visible du référent
 - ✓ Rattachement à une branche : référent de la branche d'origine, journalisé
 - ✓ Relance à 60 jours (date simulée), puis tous les 30 jours, 3 fois maximum
@@ -159,7 +164,8 @@ Dernière exécution : 1er novembre 2026, sur PHP 8.5 et MySQL 8.4.
 - ✓ Admin : paramètres, rôles, tâches et sauvegardes par le panneau
 - ✓ Racine du backend : redirige vers l'administration
 - ✓ Admin : accès perdu rétabli, compte retiré réactivé
-- ✓ Droits : un référent n'accède pas aux pages admin, mais à ses files
-- ✓ Droits : un membre n'entre pas dans le panneau
-- ✓ Référent web : valide un lien par le panneau, conflit affiché
+- ✓ Connexion : page unique, sans création de compte ni accès référent
+- ✓ Droits : seul l'administrateur entre, ni référent ni membre
+- ✓ Administrateur unique : personne d'autre ne peut le devenir
+- ✓ Admin web : valide un lien, conflit affiché
 - ✓ Admin : annulation d'une fusion depuis le panneau

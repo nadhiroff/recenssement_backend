@@ -16,6 +16,7 @@ use App\Services\ArbreService;
 use App\Services\InscriptionService;
 use App\Services\JournalService;
 use App\Services\PermissionService;
+use App\Services\PushService;
 
 final class PersonneController
 {
@@ -140,6 +141,7 @@ final class PersonneController
             if ($estLui) {
                 Database::run('UPDATE sessions_api SET revoque_le = UTC_TIMESTAMP() WHERE utilisateur_id = ? AND revoque_le IS NULL', [$r->user['id']]);
                 Database::run('UPDATE utilisateurs SET actif = 0 WHERE id = ?', [$r->user['id']]);
+                PushService::oublier((int) $r->user['id']);
             }
         });
         Response::ok(['retiree' => true]);

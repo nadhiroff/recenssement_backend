@@ -228,6 +228,12 @@ final class LienController
         ));
     }
 
+    public static function toutLu(Request $r): void
+    {
+        Database::run('UPDATE notifications SET lu_le = UTC_TIMESTAMP() WHERE utilisateur_id = ? AND lu_le IS NULL', [$r->user['id']]);
+        Response::ok(['lu' => true]);
+    }
+
     public static function notificationLue(Request $r): void
     {
         Database::run('UPDATE notifications SET lu_le = UTC_TIMESTAMP() WHERE id = ? AND utilisateur_id = ? AND lu_le IS NULL', [(int) $r->params['id'], $r->user['id']]);

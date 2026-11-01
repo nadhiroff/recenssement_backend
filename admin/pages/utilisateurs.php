@@ -45,7 +45,7 @@ foreach (AdminService::branchesSansDeuxReferents() as $b) {
 <?php if (!$l['actif']) { ?><form class="ligne" method="post" action="<?= e(url('utilisateurs')) ?>"><?= champCsrf() ?><input type="hidden" name="id" value="<?= (int) $l['id'] ?>"><input type="hidden" name="faire" value="reactiver"><button>Rétablir le compte</button></form><?php } ?>
 </td><td>
 <form class="ligne" method="post" action="<?= e(url('utilisateurs')) ?>"><?= champCsrf() ?><input type="hidden" name="id" value="<?= (int) $l['id'] ?>">
-<select name="role" aria-label="Rôle"><?php foreach (['membre' => 'Membre', 'relais' => 'Relais', 'referent' => 'Référent', 'admin' => 'Administrateur'] as $v => $t) { echo '<option value="' . $v . '"' . ($l['role_global'] === $v ? ' selected' : '') . '>' . $t . '</option>'; } ?></select>
+<select name="role" aria-label="Rôle"><?php foreach (['membre' => 'Membre', 'relais' => 'Relais', 'referent' => 'Référent'] + ($l['role_global'] === 'admin' ? ['admin' => 'Administrateur'] : []) as $v => $t) { echo '<option value="' . $v . '"' . ($l['role_global'] === $v ? ' selected' : '') . '>' . $t . '</option>'; } ?></select>
 <?php foreach ($branches as $b) { ?><label class="muet"><input type="checkbox" name="branches[]" value="<?= (int) $b['id'] ?>" <?= in_array((int) $b['id'], $rattachees[(int) $l['id']] ?? [], true) ? 'checked' : '' ?>> <?= e($b['nom']) ?></label><?php } ?>
 <button class="contour">Enregistrer</button></form></td></tr>
 <?php } ?>

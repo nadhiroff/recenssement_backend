@@ -32,6 +32,8 @@ chgrp -R www-data storage && chmod -R g+rwX storage
 ```
 
 > `schema.sql` commence par supprimer les tables : ne jamais le rejouer sur une base en service.
+> Un seul administrateur existe : il se crée en base avec `php cron/create_admin.php` et ne se nomme pas depuis le panneau. Le panneau web lui est réservé. `ADMIN_OTP_REQUIS` (`config.php`) impose le code par email hors développement : en production, utilisez une adresse que vous contrôlez et un mot de passe solide.
+>
 > `seed_demo.sql` est fictif (admin de démonstration `admin.demo@example.test` / `DemoAdmin2026!`) : à ne jamais importer en production.
 
 Mise à jour d'une base existante : appliquer dans l'ordre les fichiers de `database/migrations/`.
@@ -56,6 +58,15 @@ npm run export:pwa        # construit la PWA et la copie dans le dossier app/ du
 En développement, l'application trouve seule l'adresse du PC. Émulateur Android sans serveur Expo : `10.0.2.2`, voir `src/config.ts`. Le code OTP des comptes de démonstration (`*.test`) n'est pas envoyé : il se lit à la fin de `storage/logs/otp.log`.
 
 Tests : `php tests/run.php` (base `recensement_zocli_test` recréée à chaque lancement ; le test Gramps utilise l'image Docker `zocli-gramps:local`, sinon il échoue et le signale).
+
+### Alertes système
+
+Elles passent par le service Expo (`PUSH_DRIVER = 'expo'`, projet `@nadhir_off/recensement-zocli`).
+
+- Expo Go sur iPhone : à essayer tel quel.
+- Expo Go sur Android : ne reçoit pas de push. Application ouverte, l'alerte est produite sur le téléphone.
+- Vraie application : `eas build`. Il faut une clé APNs (compte Apple Developer payant) pour iPhone et une clé FCM (Firebase) pour Android, à déclarer avec `eas credentials`.
+- PWA : pas d'alerte système ; les alertes restent visibles dans l'application.
 
 ## 2. Hébergeur mutualisé
 

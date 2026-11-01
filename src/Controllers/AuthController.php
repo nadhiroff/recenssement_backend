@@ -15,6 +15,7 @@ use App\Services\AuthService;
 use App\Services\JournalService;
 use App\Services\OtpService;
 use App\Services\PermissionService;
+use App\Services\PushService;
 
 final class AuthController
 {
@@ -38,9 +39,23 @@ final class AuthController
 
     public static function deconnexion(Request $r): void
     {
+        $appareil = $r->body['push_token'] ?? null;
+        if (is_string($appareil)) {
+            PushService::oublier((int) $r->user['id'], $appareil);
+        }
         Auth::revoquer($r->tokenHash);
         JournalService::ecrire((int) $r->user['id'], 'auth.deconnexion', 'utilisateur', (int) $r->user['id']);
         Response::ok(['deconnecte' => true]);
+    }
+
+    public static function enregistrerAppareil(Request $r): void
+    {
+        $token = Validator::texte($r->body, 'token', 190);
+        if (!preg_match('/^Expo(nent)?PushToken\[[^\]]+\]$/', (string) $token)) {
+            Validator::echec('token', 'Jeton d\'appareil invalide.');
+        }
+        PushService::enregistrer((int) $r->user['id'], (string) $token, Validator::choix($r->body, 'plateforme', ['ios', 'android']));
+        Response::ok(['enregistre' => true]);
     }
 
     public static function demanderEmail(Request $r): void
