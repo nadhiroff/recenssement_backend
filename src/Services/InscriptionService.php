@@ -60,7 +60,7 @@ final class InscriptionService
                 if ($type === 'parent_decede') {
                     $identite['champs']['est_decede'] = 1;
                 }
-                self::exigerRapprochement($identite, $b['identite'], $branche, $u);
+                self::exigerRapprochement('identite', $b['identite'], $branche, $u);
                 $id = PersonneRepository::creer($identite['champs'] + ['branche_id' => $branche], $identite['noms'], (int) $u['id']);
                 JournalService::ecrire((int) $u['id'], 'personne.creation', 'personne', $id, $branche, ['tiers' => $type]);
             }
@@ -228,14 +228,14 @@ final class InscriptionService
     }
 
     /** Une nouvelle fiche ne se crée qu'après que l'inscrit a vu les fiches ressemblantes. */
-    private static function exigerRapprochement(array $identite, array $saisie, ?int $branche, array $u): void
+    private static function exigerRapprochement(string $cible, array $saisie, ?int $branche, array $u): void
     {
         if (Validator::booleen($saisie, 'rapprochement_vu')) {
             return;
         }
         $candidats = self::candidatsSerialises(self::critere($saisie, $branche), $u);
         if ($candidats !== []) {
-            throw new ApiException(409, 'rapprochement_requis', 'Des fiches ressemblantes existent : choisissez-en une ou confirmez une nouvelle fiche.', ['candidats' => $candidats]);
+            throw new ApiException(409, 'rapprochement_requis', 'Des fiches ressemblantes existent : choisissez-en une ou confirmez une nouvelle fiche.', ['cible' => $cible, 'candidats' => $candidats]);
         }
     }
 
@@ -285,7 +285,7 @@ final class InscriptionService
         $saisie = ['sexe' => $sexeAttendu] + $spec['nouvelle'];
         $saisie['sexe'] = $sexeAttendu;
         $identite = self::identite($saisie);
-        self::exigerRapprochement($identite, $saisie, $branche, $u);
+        self::exigerRapprochement($role, $saisie, $branche, $u);
         $id = PersonneRepository::creer($identite['champs'] + ['branche_id' => $branche], $identite['noms'], (int) $u['id']);
         JournalService::ecrire((int) $u['id'], 'personne.creation', 'personne', $id, $branche, ['role' => $role]);
         return $id;
