@@ -117,6 +117,15 @@ test('Invitation : le lien s\'ouvre sur le téléphone du proche, pas sur localh
     vrai(str_starts_with($r['data']['url'], 'http://127.0.0.1:' . TEST_PORT . '/confirmation.php?t='), $r['data']['url']);
 });
 
+test('Invitation : lien cliquable dans WhatsApp, un nom de domaine et non une adresse IP locale', function () use ($lienDeclare) {
+    $ch = curl_init('http://127.0.0.1:' . TEST_PORT . '/api/index.php/v1/liens/' . $lienDeclare() . '/invitations');
+    curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => '{}', CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => ['Host: 192.168.1.6', 'Content-Type: application/json', 'Authorization: Bearer ' . connecter('+2290100000020')]]);
+    $d = json_decode((string) curl_exec($ch), true)['data'];
+    vrai(str_starts_with($d['url'], 'http://192.168.1.6.nip.io/confirmation.php?t='), $d['url']);
+    vrai(str_contains(rawurldecode($d['whatsapp_url']), "lien :\nhttp://192.168.1.6.nip.io/"), 'le lien doit être seul sur sa ligne');
+});
+
 test('Invitation : réservée au déclarant', function () use ($lienDeclare) {
     statut(api('POST', '/liens/' . $lienDeclare() . '/invitations', [], connecter('+2290100000017')), 404);
 });

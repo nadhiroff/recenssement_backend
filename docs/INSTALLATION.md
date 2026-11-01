@@ -59,6 +59,10 @@ En développement, l'application trouve seule l'adresse du PC. Émulateur Androi
 
 Tests : `php tests/run.php` (base `recensement_zocli_test` recréée à chaque lancement ; le test Gramps utilise l'image Docker `zocli-gramps:local`, sinon il échoue et le signale).
 
+### Lien d'invitation WhatsApp
+
+WhatsApp ne rend cliquable qu'un vrai nom de domaine. En production, `APP_URL` doit donc être un domaine en `https`. En développement, une adresse IP locale passe par `nip.io` (`http://192.168.1.6.nip.io/...`), qui reste limité au même réseau Wi-Fi que le PC.
+
 ### Alertes système
 
 Elles passent par le service Expo (`PUSH_DRIVER = 'expo'`, projet `@nadhir_off/recensement-zocli`).

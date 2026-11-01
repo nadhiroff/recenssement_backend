@@ -41,7 +41,7 @@ final class ConfirmationService
 
         $url = self::racinePublique() . '/confirmation.php?t=' . $token;
         $noms = self::noms($lien);
-        $texte = "Bonjour, je recense la famille ZOCLI. Peux-tu confirmer que {$noms['parent']} est bien {$noms['role']} de {$noms['enfant']} ? Il suffit d'ouvrir ce lien : $url";
+        $texte = "Bonjour, je recense la famille ZOCLI. Peux-tu confirmer que {$noms['parent']} est bien {$noms['role']} de {$noms['enfant']} ? Il suffit d'ouvrir ce lien :\n$url";
         $numero = $telephone === null ? '' : ltrim($telephone, '+');
         return ['url' => $url, 'whatsapp_url' => "https://wa.me/$numero?text=" . rawurlencode($texte), 'expire_dans_jours' => INVITATION_TTL_DAYS];
     }
@@ -49,6 +49,8 @@ final class ConfirmationService
     /**
      * Le proche ouvre ce lien sur son propre téléphone : « localhost » n'y mène nulle part.
      * Hors production, on reprend donc l'adresse par laquelle l'application joint le serveur.
+     * WhatsApp ne rend pas cliquable une adresse IP : une IP locale passe par un nom nip.io,
+     * qui résout vers cette même IP. En production, APP_URL doit être un domaine en https.
      */
     private static function racinePublique(): string
     {
@@ -56,6 +58,7 @@ final class ConfirmationService
         if (APP_ENV === 'prod' || $hote === '') {
             return APP_URL;
         }
+        $hote = (string) preg_replace('/^((?:192\.168|10|172\.(?:1[6-9]|2\d|3[01]))(?:\.\d{1,3}){2,3})(:\d+)?$/', '$1.nip.io$2', $hote);
         return 'http://' . $hote . preg_replace('#/api/index\.php$#', '', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
     }
 
