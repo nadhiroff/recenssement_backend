@@ -13,7 +13,7 @@ header('Content-Type: text/html; charset=utf-8');
 demarrerSession();
 
 $page = (string) ($_GET['p'] ?? 'tableau');
-$pages = ['connexion', 'deconnexion', 'tableau', 'branches', 'utilisateurs', 'file', 'lien', 'doublons', 'fusions', 'variantes', 'parametres', 'journal', 'exports', 'taches'];
+$pages = ['connexion', 'deconnexion', 'tableau', 'branches', 'utilisateurs', 'file', 'lien', 'doublons', 'foyers', 'fusions', 'variantes', 'parametres', 'journal', 'exports', 'taches'];
 if (!in_array($page, $pages, true)) {
     http_response_code(404);
     exit('Page inconnue.');

@@ -13,6 +13,7 @@ use App\Repositories\PersonneRepository;
 use App\Repositories\UnionRepository;
 use App\Serializers\PersonneSerializer;
 use App\Services\ArbreService;
+use App\Services\FoyerService;
 use App\Services\InscriptionService;
 use App\Services\JournalService;
 use App\Services\PermissionService;
@@ -184,6 +185,13 @@ final class PersonneController
             }
         }
         Response::ok($res);
+    }
+
+    public static function ordonnerEpouses(Request $r): void
+    {
+        PermissionService::exigerReferent($r->user);
+        FoyerService::ordonner($r->user, (int) $r->params['id'], (array) ($r->body['ordre'] ?? []));
+        Response::ok(['ordonne' => true]);
     }
 
     /** Parents, conjoints et enfants, avec les mêmes règles de visibilité que l'arbre. */

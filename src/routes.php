@@ -27,6 +27,7 @@ return static function (Router $r): void {
     $r->patch('/personnes/{id}', [P::class, 'modifier']);
     $r->post('/personnes/{id}/retrait', [P::class, 'retrait']);
     $r->get('/personnes/{id}/epouses', [P::class, 'epouses']);
+    $r->post('/personnes/{id}/epouses/ordre', [P::class, 'ordonnerEpouses']);
     $r->get('/personnes/{id}/famille', [P::class, 'famille']);
     $r->post('/personnes/{id}/branche', [L::class, 'rattacher']);
     $r->post('/unions', [P::class, 'creerUnion']);

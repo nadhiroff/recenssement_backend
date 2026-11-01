@@ -91,6 +91,7 @@ function icone(string $nom): string
         'tableau' => '<path d="M4 13h6V4H4zM14 20h6V4h-6zM4 20h6v-3H4z"/>',
         'file' => '<path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/>',
         'doublons' => '<circle cx="9" cy="9" r="5"/><circle cx="15" cy="15" r="5"/>',
+        'foyers' => '<path d="M4 11l8-7 8 7v9H4zM10 20v-6h4v6"/>',
         'fusions' => '<path d="M6 4v5a6 6 0 0 0 6 6h6M15 12l3 3-3 3M18 4v3"/>',
         'branches' => '<path d="M12 3v7m0 0H6v4m6-4h6v4M4 14h4v6H4zM10 14h4v6h-4zM16 14h4v6h-4z"/>',
         'utilisateurs' => '<circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M16 4a4 4 0 0 1 0 8M22 21a7 7 0 0 0-4-6"/>',
@@ -107,7 +108,7 @@ function haut(string $titre, ?array $u, string $actif = '', string $sousTitre = 
 {
     $groupes = [
         'Pilotage' => ['tableau' => 'Tableau de bord'],
-        'Lignée' => ['file' => 'Liens à valider', 'doublons' => 'Doublons', 'fusions' => 'Fusions', 'branches' => 'Fondateur et branches'],
+        'Lignée' => ['file' => 'Liens à valider', 'doublons' => 'Doublons', 'foyers' => 'Foyers', 'fusions' => 'Fusions', 'branches' => 'Fondateur et branches'],
         'Personnes' => ['utilisateurs' => 'Utilisateurs et rôles'],
         'Réglages' => ['parametres' => 'Paramètres', 'variantes' => 'Variantes de noms'],
         'Contrôle' => ['journal' => 'Journal', 'exports' => 'Exports', 'taches' => 'Tâches et sauvegardes'],
@@ -184,7 +185,7 @@ function libelleAction(string $action): string
         'invitation.reponse' => 'Réponse d\'un proche', 'lien.confirmation' => 'Lien confirmé', 'lien.contestation' => 'Lien contesté', 'lien.validation' => 'Lien validé',
         'lien.rejet' => 'Lien rejeté', 'lien.examen' => 'Lien en examen', 'lien.prive' => 'Lien passé en privé', 'lien.relance' => 'Relance envoyée',
         'fusion.effectuee' => 'Fusion de fiches', 'fusion.annulee' => 'Fusion annulée', 'doublon.distinct' => 'Personnes distinctes', 'consentement.accepte' => 'Consentement',
-        'union.declaration' => 'Union déclarée', 'union.validation' => 'Union validée', 'union.creation' => 'Union créée', 'role.changement' => 'Changement de rôle',
+        'union.declaration' => 'Union déclarée', 'union.validation' => 'Union validée', 'union.creation' => 'Union créée', 'union.rang' => 'Ordre des épouses modifié', 'role.changement' => 'Changement de rôle',
         'parametre.changement' => 'Paramètre modifié', 'branche.enregistrement' => 'Branche enregistrée', 'fondateur.enregistrement' => 'Fondateur enregistré',
         'export.gedcom' => 'Export GEDCOM', 'export.csv' => 'Export CSV', 'export.journal' => 'Export du journal', 'tache.execution' => 'Tâche exécutée',
         'tache.lancement_manuel' => 'Tâche lancée', 'sauvegarde.restauration' => 'Restauration', 'sauvegarde.telechargement' => 'Sauvegarde téléchargée',

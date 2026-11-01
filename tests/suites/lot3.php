@@ -112,6 +112,31 @@ test('Fiche famille : ses propres liens en cours visibles, pas ceux des autres',
     Database::run('UPDATE utilisateurs SET personne_id = NULL WHERE id = ?', [$u]);
 });
 
+test('Ordre des épouses : référent de la branche, sans conflit, l\'arbre suit', function () use ($nomsFoyers) {
+    $pere = (int) Database::insert('personnes', ['sexe' => 'M', 'branche_id' => 2]);
+    \App\Repositories\PersonneRepository::ajouterNoms($pere, [['type' => 'naissance', 'valeur' => 'Foyer']]);
+    $e1 = (int) Database::insert('personnes', ['sexe' => 'F', 'branche_id' => 2]);
+    $e2 = (int) Database::insert('personnes', ['sexe' => 'F', 'branche_id' => 2]);
+    \App\Repositories\PersonneRepository::ajouterNoms($e1, [['type' => 'naissance', 'valeur' => 'Premiere']]);
+    \App\Repositories\PersonneRepository::ajouterNoms($e2, [['type' => 'naissance', 'valeur' => 'Seconde']]);
+    $u1 = (int) Database::insert('unions', ['epoux_id' => $pere, 'epouse_id' => $e1, 'rang_epouse' => 1, 'statut' => 'valide']);
+    $u2 = (int) Database::insert('unions', ['epoux_id' => $pere, 'epouse_id' => $e2, 'rang_epouse' => 2, 'statut' => 'valide']);
+    $url = "/personnes/$pere/epouses/ordre";
+    statut(api('POST', $url, ['ordre' => [$u2, $u1]], connecter('+2290100000020')), 403, 'membre');
+    statut(api('POST', $url, ['ordre' => [$u2, $u1]], connecter('+2290100000010')), 403, 'autre branche');
+    $j = connecter('+2290100000013');
+    statut(api('POST', $url, ['ordre' => [$u2, 999999]], $j), 422, 'union étrangère');
+    statut(api('POST', $url, ['ordre' => [$u2, $u2]], $j), 422, 'doublon');
+    statut(api('POST', $url, ['ordre' => [$u2, $u1]], $j), 200);
+    egal(1, (int) Database::value('SELECT rang_epouse FROM unions WHERE id = ?', [$u2]));
+    egal(2, (int) Database::value('SELECT rang_epouse FROM unions WHERE id = ?', [$u1]));
+    egal([$u2, $u1], array_column(statut(api('GET', "/personnes/$pere/epouses", null, $j), 200)['data'], 'union_id'));
+    egal(['Seconde', 'Premiere'], array_map(static fn(array $f): string => trim((string) $f[0]), $nomsFoyers(statut(api('GET', "/arbre?racine=$pere&profondeur=1", null, connecter('+2290100000020')), 200)['data'])));
+    egal(1, (int) Database::value("SELECT COUNT(*) FROM journal_actions WHERE action = 'union.rang' AND entite_id = ?", [$pere]));
+    // Kossi et Enyonam sont enfants de Mawuli : ni l'un ni l'autre ne touche à son foyer
+    statut(api('POST', '/personnes/5/epouses/ordre', ['ordre' => [2, 1]], connecter('+2290100000009')), 403, 'conflit');
+});
+
 section('Lot 3 — suivi');
 
 test('Stats : par branche et par statut, limitées à la branche du référent', function () {

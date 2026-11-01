@@ -19,6 +19,7 @@ Réponses : `{ "ok": true, "data": ... }` ou `{ "ok": false, "error": { "code", 
 | POST `/personnes/{id}/retrait` | propriétaire | `{confirmation: true}` |
 | POST `/personnes/{id}/branche` | référent | `{branche_id}` |
 | GET `/personnes/{id}/epouses` · POST `/unions` | connecté | foyers |
+| POST `/personnes/{id}/epouses/ordre` | référent de la branche, admin | `{ordre: [id des unions]}` fixe le rang des épouses, sauf conflit d'intérêts |
 | GET `/personnes/{id}/famille` | connecté | parents, conjoints, enfants, selon le rôle |
 | GET `/mes-liens` · GET `/liens/{id}` | connecté | ses liens, détail |
 | POST `/liens/{id}/invitations` | déclarant | `{telephone?}` → `{url, whatsapp_url}` |

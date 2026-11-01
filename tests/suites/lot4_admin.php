@@ -89,7 +89,7 @@ test('Admin : une requête POST sans jeton CSRF est refusée', function () use (
 
 test('Admin : toutes les pages répondent', function () use ($connexionAdmin) {
     $n = $connexionAdmin();
-    foreach (['tableau', 'branches', 'utilisateurs', 'file', 'doublons', 'fusions', 'variantes', 'parametres', 'journal', 'exports', 'taches'] as $p) {
+    foreach (['tableau', 'branches', 'utilisateurs', 'file', 'doublons', 'foyers', 'fusions', 'variantes', 'parametres', 'journal', 'exports', 'taches'] as $p) {
         $n->aller("index.php?p=$p");
         egal(200, $n->http, $p);
         vrai(!preg_match('/Warning|Fatal|Deprecated|Notice|Uncaught/', $n->corps), "erreur PHP sur $p");
@@ -189,6 +189,16 @@ test('Paramètres : chaque réglage de la page est lu et borné', function () us
     egal(0, \App\Services\MatchingService::poids()['ecart']);
     $n->poster('parametres', ['ecart_annees_max' => '5']);
     \App\Services\ParametreService::viderCache();
+});
+
+test('Foyers : l\'administrateur change l\'ordre des épouses', function () use ($connexionAdmin) {
+    $n = $connexionAdmin();
+    $n->aller('index.php?p=foyers');
+    vrai(str_contains($n->corps, 'Mawuli ZOCLI') && str_contains($n->corps, '1re épouse'), 'page');
+    $n->poster('foyers', ['epoux' => 5, 'ordre' => '2,1']);
+    egal(1, (int) Database::value('SELECT rang_epouse FROM unions WHERE id = 2'));
+    $n->poster('foyers', ['epoux' => 5, 'ordre' => '1,2']);
+    egal(1, (int) Database::value('SELECT rang_epouse FROM unions WHERE id = 1'));
 });
 
 test('Connexion : page unique, sans création de compte ni accès référent', function () {

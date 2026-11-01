@@ -26,6 +26,8 @@ Vous êtes le garant des liens de votre branche. Rien n'entre dans l'arbre sans 
 - *Même personne* : choisissez la fiche à garder, puis fusionnez. Rien n'est perdu, l'administrateur peut annuler.
 - *Personnes différentes* : « Personnes distinctes ». La paire ne sera plus proposée. Des frères et sœurs proches en âge sont souvent signalés : c'est normal.
 
+**Ordre des épouses.** Le rang suit d'abord l'ordre de saisie. Vérifiez-le avec les aînés, puis corrigez-le depuis la fiche du père, avec Monter et Descendre. Vous ne pouvez pas modifier le foyer de vos propres parents.
+
 **Fiche reprise.** Quand un membre se reconnaît dans une fiche existante, vous recevez une alerte : vérifiez que c'est bien lui.
 
 **Accès perdu.** Un membre qui a perdu son numéro ou son email vous contacte : vérifiez son identité, puis transmettez à l'administrateur, qui rétablit l'accès.
