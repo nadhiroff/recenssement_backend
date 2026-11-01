@@ -22,12 +22,20 @@ try {
         if (!in_array($reponse, ['oui', 'non', 'ne_sait_pas'], true)) {
             throw new ApiException(422, 'validation', 'Réponse invalide.');
         }
-        ConfirmationService::repondre($token, $reponse, null);
-        $message = 'Merci, votre réponse est enregistrée.';
+        try {
+            ConfirmationService::repondre($token, $reponse, null);
+        } catch (ApiException $ex) {
+            if ($ex->codeErreur !== 'deja_repondu') {
+                throw $ex;
+            }
+        }
+        // Actualiser la page ou la rouvrir ne renvoie jamais la réponse, et un second envoi n'est pas une erreur.
+        header('Location: confirmation.php?t=' . rawurlencode($token), true, 303);
+        exit;
     } else {
         $infos = ConfirmationService::lire($token);
         if ($infos['deja_repondu']) {
-            $message = 'Cette invitation a déjà reçu une réponse. Merci.';
+            $message = 'Merci, votre réponse est bien enregistrée.';
         } elseif (!$infos['statut_attendu']) {
             $message = 'Ce lien a déjà été traité. Merci.';
         }

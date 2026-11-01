@@ -182,6 +182,17 @@ test('Page web de confirmation : question affichée, réponse enregistrée, éch
     egal('confirme', Database::value('SELECT statut FROM liens_parente WHERE id = ?', [$l]));
 });
 
+test('Page web de confirmation : un second envoi depuis une page restée ouverte n\'affiche pas d\'erreur', function () use ($lienDeclare, $inviter) {
+    $l = $lienDeclare();
+    $url = 'http://127.0.0.1:' . TEST_PORT . '/confirmation.php?t=' . $inviter($l);
+    $c = stream_context_create(['http' => ['method' => 'POST', 'header' => 'Content-Type: application/x-www-form-urlencoded', 'content' => 'reponse=oui']]);
+    vrai(str_contains((string) file_get_contents($url, false, $c), 'réponse est bien enregistrée'), 'premier envoi');
+    $c2 = stream_context_create(['http' => ['method' => 'POST', 'header' => 'Content-Type: application/x-www-form-urlencoded', 'content' => 'reponse=non']]);
+    $html = (string) file_get_contents($url, false, $c2);
+    vrai(str_contains($html, 'réponse est bien enregistrée') && !str_contains($html, 'déjà été utilisée'), 'second envoi');
+    egal('confirme', Database::value('SELECT statut FROM liens_parente WHERE id = ?', [$l]), 'la première réponse reste');
+});
+
 section('Lot 2 — alertes');
 
 $dernierPush = static function (): array {
