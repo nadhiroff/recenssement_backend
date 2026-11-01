@@ -128,7 +128,9 @@ html:has(.page-connexion){height:100%;overflow:hidden}
 @media(max-width:1000px){
   .app{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);height:100dvh}
   .barre{flex-direction:row;align-items:center;padding:8px 10px;overflow-x:auto;gap:2px}
-  .marque,.groupe{display:none}
+  .groupe{display:none}
+  .barre .marque{padding:0 8px 0 0}
+  .barre .marque div{display:none}
   .barre a.item{white-space:nowrap;min-height:40px}
   .compte{margin:0 0 0 8px;padding:0;border:0;flex-direction:row}
   .compte .qui{display:none}

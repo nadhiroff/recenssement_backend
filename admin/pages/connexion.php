@@ -20,7 +20,6 @@ $ouvrirSession = static function (int $id): never {
     $_SESSION['utilisateur_id'] = $id;
     Database::run('UPDATE utilisateurs SET derniere_connexion = UTC_TIMESTAMP() WHERE id = ?', [$id]);
     JournalService::ecrire($id, 'auth.connexion', 'utilisateur', $id, null, ['canal' => 'web']);
-    RateLimiter::effacer('login_admin', (string) Request::ip());
     rediriger('tableau');
 };
 
@@ -74,7 +73,6 @@ try {
   <form method="post" action="<?= e(url('connexion')) ?>"><?= champCsrf() ?><input type="hidden" name="mode" value="recommencer"><button class="lien">Recommencer</button></form>
   <?php } else { ?>
   <h1>Connexion</h1>
-  <p class="muet">Réservé à l'administrateur général.</p>
   <?php if ($erreur !== null) { echo '<div class="alerte erreur" role="alert">' . e($erreur) . '</div>'; } ?>
   <form method="post" action="<?= e(url('connexion')) ?>"><?= champCsrf() ?><input type="hidden" name="mode" value="admin">
     <label for="email">Email</label><input id="email" type="email" name="email" autocomplete="username" required autofocus>
