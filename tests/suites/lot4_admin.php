@@ -97,7 +97,7 @@ test('Admin : toutes les pages répondent', function () use ($connexionAdmin) {
     foreach (['tableau', 'branches', 'utilisateurs', 'file', 'doublons', 'fusions', 'variantes', 'parametres', 'journal', 'exports', 'taches'] as $p) {
         $n->aller("index.php?p=$p");
         egal(200, $n->http, $p);
-        vrai(!str_contains($n->corps, 'Warning') && !str_contains($n->corps, 'Fatal'), "erreur PHP sur $p");
+        vrai(!preg_match('/Warning|Fatal|Deprecated|Notice/', $n->corps), "erreur PHP sur $p");
     }
     $n->aller('index.php?p=inconnue');
     egal(404, $n->http);
