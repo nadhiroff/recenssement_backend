@@ -2,6 +2,14 @@
 (function () {
   var boite = document.getElementById('confirmation');
 
+  // Les messages passagers s'effacent seuls ; les avertissements permanents restent.
+  document.querySelectorAll('.alerte[role]').forEach(function (a) {
+    setTimeout(function () {
+      a.classList.add('parti');
+      setTimeout(function () { a.remove(); }, 300);
+    }, 5000);
+  });
+
   function demander(message, oui, non, suite) {
     boite.querySelector('[data-message]').textContent = message;
     var bOui = boite.querySelector('[data-oui]');

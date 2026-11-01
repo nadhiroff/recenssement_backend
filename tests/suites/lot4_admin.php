@@ -63,7 +63,9 @@ test('Admin : mot de passe faux refusé, sans page protégée sans session', fun
     egal(302, $n->http);
     vrai(str_contains($n->lieu, 'p=connexion'), 'redirection');
     $n->poster('connexion', ['mode' => 'admin', 'email' => 'admin.demo@example.test', 'mot_de_passe' => 'mauvais']);
-    vrai(str_contains($n->corps, 'mot de passe incorrect'), 'message');
+    egal(302, $n->http, 'retour en GET : actualiser ne renvoie pas le mot de passe');
+    vrai(str_contains($n->aller('index.php?p=connexion'), 'mot de passe incorrect'), 'message');
+    vrai(!str_contains($n->aller('index.php?p=connexion'), 'mot de passe incorrect'), 'message affiché une seule fois');
 });
 
 test('Admin : connexion en deux facteurs, en-têtes de sécurité, cookie durci', function () use ($connexionAdmin) {
@@ -205,7 +207,7 @@ test('Droits : seul l\'administrateur entre, ni référent ni membre', function 
     }
     $n = new Navigateur();
     $n->poster('connexion', ['mode' => 'admin', 'email' => 'kossi.demo@example.test', 'mot_de_passe' => 'DemoAdmin2026!']);
-    vrai(str_contains($n->corps, 'mot de passe incorrect'), 'référent refusé');
+    vrai(str_contains($n->aller('index.php?p=connexion'), 'mot de passe incorrect'), 'référent refusé');
 });
 
 test('Administrateur unique : personne d\'autre ne peut le devenir', function () use ($connexionAdmin) {

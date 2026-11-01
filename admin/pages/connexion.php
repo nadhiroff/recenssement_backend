@@ -23,8 +23,8 @@ $ouvrirSession = static function (int $id): never {
     rediriger('tableau');
 };
 
-$erreur = null;
-$etape = isset($_SESSION['otp_identifiant']) ? 'code' : 'identifiants';
+$erreur = $_SESSION['erreur_connexion'] ?? null;
+unset($_SESSION['erreur_connexion']);
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -44,18 +44,20 @@ try {
             OtpService::emettre($email, $email, 'email');
             $_SESSION['otp_identifiant'] = $email;
             $_SESSION['otp_utilisateur'] = (int) $cible['id'];
-            $etape = 'code';
         } elseif ($mode === 'code') {
             OtpService::verifier((string) ($_SESSION['otp_identifiant'] ?? ''), (string) ($_POST['code'] ?? ''));
             $ouvrirSession((int) ($_SESSION['otp_utilisateur'] ?? 0));
         } elseif ($mode === 'recommencer') {
             unset($_SESSION['otp_identifiant'], $_SESSION['otp_utilisateur']);
-            $etape = 'identifiants';
         }
+        rediriger('connexion');
     }
 } catch (ApiException $ex) {
-    $erreur = $ex->getMessage();
+    // Toujours revenir en GET : actualiser la page ne doit jamais renvoyer le mot de passe.
+    $_SESSION['erreur_connexion'] = $ex->getMessage();
+    rediriger('connexion');
 }
+$etape = isset($_SESSION['otp_identifiant']) ? 'code' : 'identifiants';
 ?>
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -80,4 +82,5 @@ try {
     <button>Se connecter</button></form>
   <?php } ?>
 </main>
+<script src="assets/admin.js"></script>
 </body></html>
