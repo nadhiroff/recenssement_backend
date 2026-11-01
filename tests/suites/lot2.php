@@ -112,6 +112,11 @@ test('Invitation : URL wa.me à jeton unique, jeton haché en base', function ()
     egal(0, (int) Database::value('SELECT COUNT(*) FROM invitations_confirmation WHERE token_hash = ?', [$token]));
 });
 
+test('Invitation : le lien s\'ouvre sur le téléphone du proche, pas sur localhost', function () use ($lienDeclare) {
+    $r = statut(api('POST', '/liens/' . $lienDeclare() . '/invitations', [], connecter('+2290100000020')), 201);
+    vrai(str_starts_with($r['data']['url'], 'http://127.0.0.1:' . TEST_PORT . '/confirmation.php?t='), $r['data']['url']);
+});
+
 test('Invitation : réservée au déclarant', function () use ($lienDeclare) {
     statut(api('POST', '/liens/' . $lienDeclare() . '/invitations', [], connecter('+2290100000017')), 404);
 });
@@ -214,8 +219,10 @@ test('Alertes : une seule marquée lue, puis toutes ; jamais celles d\'un autre'
     $id = (int) Database::value("SELECT id FROM notifications WHERE message = 'Test 1'");
     statut(api('POST', "/notifications/$id/lu", [], $j), 200);
     vrai(Database::value('SELECT lu_le FROM notifications WHERE id = ?', [$id]) !== null, 'lue');
+    egal(['Test 2'], array_values(array_intersect(['Test 1', 'Test 2'], array_column(statut(api('GET', '/notifications', null, $j), 200)['data'], 'message'))), 'une alerte vue disparaît');
     statut(api('POST', '/notifications/lu', [], $j), 200);
     egal(0, (int) Database::value('SELECT COUNT(*) FROM notifications WHERE utilisateur_id = 12 AND lu_le IS NULL'));
+    egal([], statut(api('GET', '/notifications', null, $j), 200)['data']);
     egal(1, (int) Database::value("SELECT COUNT(*) FROM notifications WHERE message = 'Autre' AND lu_le IS NULL"));
     statut(api('POST', "/notifications/" . Database::value("SELECT id FROM notifications WHERE message = 'Autre'") . '/lu', [], $j), 200);
     egal(1, (int) Database::value("SELECT COUNT(*) FROM notifications WHERE message = 'Autre' AND lu_le IS NULL"), 'alerte d\'un autre');

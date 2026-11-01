@@ -223,7 +223,7 @@ final class LienController
     public static function notifications(Request $r): void
     {
         Response::ok(Database::all(
-            'SELECT id, type, message, lien_id, lu_le, created_at FROM notifications WHERE utilisateur_id = ? ORDER BY id DESC LIMIT 50',
+            'SELECT id, type, message, lien_id, lu_le, created_at FROM notifications WHERE utilisateur_id = ? AND lu_le IS NULL ORDER BY id DESC LIMIT 50',
             [$r->user['id']]
         ));
     }

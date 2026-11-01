@@ -4,8 +4,6 @@ declare(strict_types=1);
 use App\Core\Database;
 use App\Services\AdminService;
 
-exigerAdminPage($u);
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $faire = $_POST['faire'] ?? '';
     if ($faire === 'recalculer') {
@@ -18,17 +16,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $liste = Database::all('SELECT * FROM variantes_noms ORDER BY forme_canonique, variante');
-haut('Variantes de noms', $u, 'variantes');
+$outils = '<form method="post" action="' . e(url('variantes')) . '">' . champCsrf() . '<input type="hidden" name="faire" value="recalculer"><button class="contour">Recalculer les noms</button></form>';
+haut('Variantes de noms', $u, 'variantes', 'Orthographes ramenées à une même forme pour le rapprochement', $outils);
 ?>
-<h1>Variantes de noms</h1>
-<div class="carte"><form method="post" action="<?= e(url('variantes')) ?>"><?= champCsrf() ?>
-<div class="deux"><div><label for="v">Variante</label><input id="v" name="variante" required placeholder="ZOKLI"></div>
-<div><label for="c">Forme canonique</label><input id="c" name="forme_canonique" required placeholder="ZOCLI"></div></div>
-<p><button>Ajouter</button></p></form>
-<form method="post" action="<?= e(url('variantes')) ?>"><?= champCsrf() ?><input type="hidden" name="faire" value="recalculer"><button class="contour">Recalculer les noms normalisés</button></form></div>
-<div class="carte table"><table><tr><th scope="col">Variante</th><th scope="col">Forme canonique</th><th scope="col"></th></tr>
+<div class="deux large remplir">
+<div class="table"><table><thead><tr><th scope="col">Variante</th><th scope="col">Forme retenue</th><th scope="col"><span class="muet">Actions</span></th></tr></thead><tbody>
 <?php foreach ($liste as $v) { ?>
-<tr><td><?= e($v['variante']) ?></td><td><?= e($v['forme_canonique']) ?></td><td><form method="post" action="<?= e(url('variantes')) ?>" data-confirmer="Supprimer cette variante ?"><?= champCsrf() ?><input type="hidden" name="faire" value="supprimer"><input type="hidden" name="id" value="<?= (int) $v['id'] ?>"><button class="contour">Supprimer</button></form></td></tr>
-<?php } ?>
-</table></div>
+<tr><td><?= e($v['variante']) ?></td><td><strong><?= e($v['forme_canonique']) ?></strong></td><td class="action"><form method="post" action="<?= e(url('variantes')) ?>" data-confirmer="Supprimer cette variante ?" data-oui="Oui, supprimer"><?= champCsrf() ?><input type="hidden" name="faire" value="supprimer"><input type="hidden" name="id" value="<?= (int) $v['id'] ?>"><button class="contour petit">Supprimer</button></form></td></tr>
+<?php } if ($liste === []) { echo '<tr><td colspan="3" class="vide">Aucune variante.</td></tr>'; } ?>
+</tbody></table></div>
+<section class="carte"><h2>Ajouter une variante</h2>
+<form method="post" action="<?= e(url('variantes')) ?>"><?= champCsrf() ?>
+<label for="v">Variante</label><input id="v" name="variante" required placeholder="ZOKLI">
+<label for="c">Forme retenue</label><input id="c" name="forme_canonique" required placeholder="ZOCLI">
+<div class="boutons"><button>Ajouter</button></div></form></section>
+</div>
 <?php bas();

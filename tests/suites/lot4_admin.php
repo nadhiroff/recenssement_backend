@@ -90,7 +90,7 @@ test('Admin : toutes les pages répondent', function () use ($connexionAdmin) {
     foreach (['tableau', 'branches', 'utilisateurs', 'file', 'doublons', 'fusions', 'variantes', 'parametres', 'journal', 'exports', 'taches'] as $p) {
         $n->aller("index.php?p=$p");
         egal(200, $n->http, $p);
-        vrai(!preg_match('/Warning|Fatal|Deprecated|Notice/', $n->corps), "erreur PHP sur $p");
+        vrai(!preg_match('/Warning|Fatal|Deprecated|Notice|Uncaught/', $n->corps), "erreur PHP sur $p");
     }
     $n->aller('index.php?p=inconnue');
     egal(404, $n->http);
@@ -144,6 +144,49 @@ test('Admin : accès perdu rétabli, compte retiré réactivé', function () use
     egal(1, (int) Database::value('SELECT actif FROM utilisateurs WHERE id = ?', [$id]));
     egal('active', Database::value('SELECT statut_fiche FROM personnes WHERE id = ?', [$p]));
     egal('+2290161000041', Database::value('SELECT telephone_whatsapp FROM personnes WHERE id = ?', [$p]));
+});
+
+test('Panneau : formulaires CSRF, boutons de sortie confirmés, pagination', function () use ($connexionAdmin) {
+    $n = $connexionAdmin();
+    $n->aller('index.php?p=tableau');
+    vrai(str_contains($n->corps, 'Voulez-vous vraiment vous déconnecter'), 'déconnexion sans confirmation');
+    vrai(!preg_match('/ style="/', $n->corps), 'style en ligne bloqué par la politique de sécurité');
+    $n->aller('index.php?p=utilisateurs&q=kossi');
+    vrai(str_contains($n->corps, 'Kossi ZOCLI') && !str_contains($n->corps, 'Enyonam ZOCLI'), 'recherche');
+    $n->aller('index.php?p=utilisateurs&role=referent');
+    vrai(!str_contains($n->corps, 'Edem ZOCLI'), 'filtre par rôle');
+});
+
+test('Paramètres : chaque réglage de la page est lu et borné', function () use ($connexionAdmin) {
+    $n = $connexionAdmin();
+    $n->aller('index.php?p=parametres');
+    foreach (['score_prenom_commun', 'score_meme_pere', 'score_meme_branche', 'score_naissance_5ans', 'score_meme_mere', 'seuil_proposition', 'seuil_doublon', 'ecart_annees_max', 'delai_relance_jours', 'delai_relance_suivante_jours', 'nb_relances_max', 'arbre_visible_membres', 'doublon_prenom_requis', 'generations_lignee_feminine'] as $c) {
+        vrai(str_contains($n->corps, 'name="' . $c . '"'), "$c absent");
+    }
+    vrai(!str_contains($n->corps, 'nature_lien_active'), 'réglage sans effet affiché');
+    $n->poster('parametres', ['nb_relances_max' => '99']);
+    vrai(str_contains($n->aller('index.php?p=parametres'), 'entre 0 et 12'), 'borne');
+    egal('3', Database::value("SELECT valeur FROM parametres WHERE cle = 'nb_relances_max'"));
+    $n->poster('parametres', ['arbre_visible_membres' => '0']);
+    statut(api('GET', '/arbre', null, connecter('+2290100000020')), 403, 'arbre fermé depuis le panneau');
+    $n->poster('parametres', ['arbre_visible_membres' => '1']);
+    statut(api('GET', '/arbre', null, connecter('+2290100000020')), 200);
+    $n->poster('parametres', ['nb_relances_max' => '0']);
+    \App\Services\ParametreService::viderCache();
+    $l = (int) Database::insert('liens_parente', ['parent_id' => 11, 'enfant_id' => (int) Database::insert('personnes', ['sexe' => 'M', 'branche_id' => 1]), 'role_parent' => 'pere', 'declarant_utilisateur_id' => 12, 'declare_le' => gmdate('Y-m-d H:i:s', time() - 90 * 86400)]);
+    egal(0, \App\Services\LienService::relancer(), 'nb_relances_max');
+    $n->poster('parametres', ['nb_relances_max' => '3']);
+    \App\Services\ParametreService::viderCache();
+    Database::run('UPDATE liens_parente SET statut = \'en_examen\' WHERE id = ?', [$l]);
+    $n->poster('parametres', ['seuil_proposition' => '200']);
+    egal([], statut(api('POST', '/rapprochement/candidats', ['prenoms' => 'Kossi', 'annee_naissance' => 1968, 'pere_id' => 5, 'branche_id' => 1], connecter('+2290100000020')), 200)['data'], 'seuil_proposition');
+    $n->poster('parametres', ['seuil_proposition' => '50']);
+    egal(9, statut(api('POST', '/rapprochement/candidats', ['prenoms' => 'Kossi', 'annee_naissance' => 1968, 'pere_id' => 5, 'branche_id' => 1], connecter('+2290100000020')), 200)['data'][0]['personne']['id']);
+    $n->poster('parametres', ['ecart_annees_max' => '0']);
+    \App\Services\ParametreService::viderCache();
+    egal(0, \App\Services\MatchingService::poids()['ecart']);
+    $n->poster('parametres', ['ecart_annees_max' => '5']);
+    \App\Services\ParametreService::viderCache();
 });
 
 test('Connexion : page unique, sans création de compte ni accès référent', function () {

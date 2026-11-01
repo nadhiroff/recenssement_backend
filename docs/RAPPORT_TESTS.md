@@ -4,13 +4,16 @@ Dernière exécution : 1er novembre 2026, sur PHP 8.5 et MySQL 8.4.
 
 | Suite | Résultat |
 |---|---|
-| Backend et admin web (`php tests/run.php`) | 110 réussis, 0 échoué |
+| Backend et admin web (`php tests/run.php`) | 113 réussis, 0 échoué |
 | Frontend Jest (`npx jest`) | 21 réussis, 0 échoué |
 | TypeScript, ESLint, `expo-doctor` | sans erreur (20/20 pour expo-doctor) |
 | `expo export` Android et web | sans erreur |
 | Gramps 6.0.6 (Docker) | « GEDCOM import report: No errors detected » |
 | `.htaccess` dans Apache avec AllowOverride All, PHP 8.1 (Docker) | fichiers sensibles en 403, `.git` en 404, réécriture OK, syntaxe OK |
 | Chrome mobile 360×640, 3G et CPU divisé par 4 | parcours complet, coupure réseau, réouverture hors ligne, rejeu, modification, déconnexion Oui/Non, retrait, fiche depuis l'arbre : OK |
+
+| Chrome, parcours du proche | invitation WhatsApp, page du proche sans compte, Oui, alerte référent, validation, alerte déclarant, statut Validé : OK |
+| Chrome, panneau admin 1366×768 | 11 pages sans défilement, aucun bouton souligné, déconnexion Oui/Non : OK |
 
 ## Scénarios de recette
 
@@ -108,6 +111,7 @@ Dernière exécution : 1er novembre 2026, sur PHP 8.5 et MySQL 8.4.
 - ✓ Référent : droits limités à sa branche ; membre interdit
 - ✓ Validation du père et de la mère : l'union passe en validée
 - ✓ Invitation : URL wa.me à jeton unique, jeton haché en base
+- ✓ Invitation : le lien s'ouvre sur le téléphone du proche, pas sur localhost
 - ✓ Invitation : réservée au déclarant
 - ✓ Invitation : on ne peut pas s'inviter soi-même
 - ✓ Confirmation : Oui fait passer le lien à confirmé, sans compte, une seule fois
@@ -164,6 +168,8 @@ Dernière exécution : 1er novembre 2026, sur PHP 8.5 et MySQL 8.4.
 - ✓ Admin : paramètres, rôles, tâches et sauvegardes par le panneau
 - ✓ Racine du backend : redirige vers l'administration
 - ✓ Admin : accès perdu rétabli, compte retiré réactivé
+- ✓ Panneau : formulaires CSRF, boutons de sortie confirmés, pagination
+- ✓ Paramètres : chaque réglage de la page est lu et borné
 - ✓ Connexion : page unique, sans création de compte ni accès référent
 - ✓ Droits : seul l'administrateur entre, ni référent ni membre
 - ✓ Administrateur unique : personne d'autre ne peut le devenir

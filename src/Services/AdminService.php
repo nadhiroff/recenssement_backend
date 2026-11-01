@@ -192,6 +192,18 @@ final class AdminService
         return $n;
     }
 
+    /** Valeurs admises : un réglage aberrant ne doit pas pouvoir casser le rapprochement ou les relances. */
+    private const BORNES = [
+        'generations_lignee_feminine' => [-1, 20],
+        'arbre_visible_membres' => [0, 1],
+        'doublon_prenom_requis' => [0, 1],
+        'nature_lien_active' => [0, 1],
+        'delai_relance_jours' => [1, 365],
+        'delai_relance_suivante_jours' => [1, 365],
+        'nb_relances_max' => [0, 12],
+        'ecart_annees_max' => [0, 50],
+    ];
+
     public static function modifierParametres(array $u, array $valeurs): void
     {
         $connus = array_keys(ParametreService::tous());
@@ -202,6 +214,10 @@ final class AdminService
                 }
                 if (filter_var($valeur, FILTER_VALIDATE_INT) === false) {
                     Validator::echec((string) $cle, 'Valeur entière attendue.');
+                }
+                [$min, $max] = self::BORNES[$cle] ?? [0, 200];
+                if ((int) $valeur < $min || (int) $valeur > $max) {
+                    Validator::echec((string) $cle, "Valeur attendue entre $min et $max.");
                 }
                 Database::run('UPDATE parametres SET valeur = ? WHERE cle = ?', [(string) (int) $valeur, $cle]);
                 JournalService::ecrire((int) $u['id'], 'parametre.changement', 'parametre', null, null, ['cle' => $cle, 'valeur' => (int) $valeur]);

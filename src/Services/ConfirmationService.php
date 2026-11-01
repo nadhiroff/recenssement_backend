@@ -39,11 +39,24 @@ final class ConfirmationService
         ]);
         JournalService::ecrire((int) $u['id'], 'lien.invitation', 'lien', $lienId, $lien['branche_id'] === null ? null : (int) $lien['branche_id'], ['invitation' => $id]);
 
-        $url = APP_URL . '/confirmation.php?t=' . $token;
+        $url = self::racinePublique() . '/confirmation.php?t=' . $token;
         $noms = self::noms($lien);
         $texte = "Bonjour, je recense la famille ZOCLI. Peux-tu confirmer que {$noms['parent']} est bien {$noms['role']} de {$noms['enfant']} ? Il suffit d'ouvrir ce lien : $url";
         $numero = $telephone === null ? '' : ltrim($telephone, '+');
         return ['url' => $url, 'whatsapp_url' => "https://wa.me/$numero?text=" . rawurlencode($texte), 'expire_dans_jours' => INVITATION_TTL_DAYS];
+    }
+
+    /**
+     * Le proche ouvre ce lien sur son propre téléphone : « localhost » n'y mène nulle part.
+     * Hors production, on reprend donc l'adresse par laquelle l'application joint le serveur.
+     */
+    private static function racinePublique(): string
+    {
+        $hote = $_SERVER['HTTP_HOST'] ?? '';
+        if (APP_ENV === 'prod' || $hote === '') {
+            return APP_URL;
+        }
+        return 'http://' . $hote . preg_replace('#/api/index\.php$#', '', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
     }
 
     private static function noms(array $lien): array

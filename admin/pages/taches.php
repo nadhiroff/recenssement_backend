@@ -5,8 +5,6 @@ use App\Services\BackupService;
 use App\Services\JournalService;
 use App\Services\TacheService;
 
-exigerAdminPage($u);
-
 if (isset($_GET['telecharger'])) {
     $chemin = BackupService::chemin((string) $_GET['telecharger']);
     JournalService::ecrire((int) $u['id'], 'sauvegarde.telechargement', null, null, null, ['fichier' => basename($chemin)]);
@@ -36,21 +34,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $libelles = ['detect_doublons' => 'Détection des doublons', 'relances' => 'Relances', 'backup' => 'Sauvegarde'];
-haut('Tâches et sauvegardes', $u, 'taches');
+$sauvegardes = BackupService::liste();
+haut('Tâches et sauvegardes', $u, 'taches', 'Le travail automatique du système');
 ?>
-<h1>Tâches et sauvegardes</h1>
-<div class="carte table"><table><tr><th scope="col">Tâche</th><th scope="col">Dernière exécution (UTC)</th><th scope="col">Résultat</th><th scope="col"></th></tr>
+<div class="tuiles">
 <?php foreach (TacheService::etats() as $t) { ?>
-<tr><td><?= e($libelles[$t['nom']]) ?></td><td><?= e($t['derniere_execution'] ?? 'jamais') ?></td><td class="muet"><?= e($t['statut']) ?> <?= e($t['resume']) ?></td>
-<td><form method="post" action="<?= e(url('taches')) ?>"><?= champCsrf() ?><input type="hidden" name="nom" value="<?= e($t['nom']) ?>"><button class="contour">Lancer maintenant</button></form></td></tr>
+<div class="tuile"><strong><?= e($libelles[$t['nom']]) ?></strong><br><span>Dernière fois : <?= e($t['derniere_execution'] ? substr($t['derniere_execution'], 0, 16) : 'jamais') ?></span>
+<?= $t['statut'] === 'erreur' ? '<br><span class="badge rejete">Erreur</span>' : '' ?>
+<form method="post" action="<?= e(url('taches')) ?>"><?= champCsrf() ?><input type="hidden" name="nom" value="<?= e($t['nom']) ?>"><div class="boutons"><button class="contour petit">Lancer maintenant</button></div></form></div>
 <?php } ?>
-</table></div>
-<h2>Sauvegardes</h2>
-<div class="carte table"><table><tr><th scope="col">Fichier</th><th scope="col">Taille</th><th scope="col"></th></tr>
-<?php foreach (BackupService::liste() as $b) { ?>
-<tr><td><?= e($b['fichier']) ?></td><td><?= number_format($b['taille'] / 1024, 0, ',', ' ') ?> Ko</td>
-<td><a href="<?= e(url('taches', ['telecharger' => $b['fichier']])) ?>">Télécharger</a>
-<form class="ligne" method="post" action="<?= e(url('taches')) ?>" data-confirmer="Restaurer cette sauvegarde ?" data-confirmer2="Toutes les données actuelles seront remplacées. Confirmer une dernière fois ?"><?= champCsrf() ?><input type="hidden" name="faire" value="restaurer"><input type="hidden" name="fichier" value="<?= e($b['fichier']) ?>"><input name="confirmation" placeholder="Tapez RESTAURER" required aria-label="Confirmation"><button class="danger">Restaurer</button></form></td></tr>
-<?php } ?>
-</table></div>
-<?php bas();
+</div>
+<div class="table"><table><thead><tr><th scope="col">Sauvegarde</th><th scope="col">Taille</th><th scope="col"><span class="muet">Actions</span></th></tr></thead><tbody>
+<?php foreach (array_slice($sauvegardes, 0, 11) as $i => $b) { ?>
+<tr><td><?= e($b['date']) ?> <span class="muet"><?= str_contains($b['fichier'], 'hebdo') ? 'hebdomadaire' : 'quotidienne' ?></span></td><td class="muet"><?= number_format($b['taille'] / 1024, 0, ',', ' ') ?> Ko</td>
+<td class="action"><a class="bouton contour petit" href="<?= e(url('taches', ['telecharger' => $b['fichier']])) ?>">Télécharger</a> <button type="button" class="contour petit" data-ouvrir="r-<?= $i ?>">Restaurer</button></td></tr>
+<?php } if ($sauvegardes === []) { echo '<tr><td colspan="3" class="vide">Aucune sauvegarde.</td></tr>'; } ?>
+</tbody></table></div>
+<?php foreach (array_slice($sauvegardes, 0, 11) as $i => $b) { ?>
+<dialog id="r-<?= $i ?>"><div class="fenetre"><h2>Restaurer cette sauvegarde</h2><p class="muet">Toutes les données actuelles seront remplacées par celles du <?= e($b['date']) ?>.</p>
+<form method="post" action="<?= e(url('taches')) ?>" data-confirmer="Dernière vérification : remplacer toutes les données actuelles ?" data-oui="Oui, restaurer"><?= champCsrf() ?><input type="hidden" name="faire" value="restaurer"><input type="hidden" name="fichier" value="<?= e($b['fichier']) ?>">
+<label for="c-<?= $i ?>">Tapez RESTAURER</label><input id="c-<?= $i ?>" name="confirmation" required autocomplete="off">
+<div class="boutons"><button type="button" class="contour" data-fermer>Annuler</button><button class="danger">Restaurer</button></div></form></div></dialog>
+<?php }
+bas();

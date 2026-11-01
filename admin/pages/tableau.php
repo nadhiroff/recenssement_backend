@@ -2,41 +2,43 @@
 declare(strict_types=1);
 
 use App\Services\AdminService;
-use App\Services\PermissionService;
 use App\Services\SuiviService;
 
-$admin = PermissionService::estAdmin($u);
-$portee = $admin ? null : PermissionService::branchesReferent($u);
-$stats = SuiviService::stats($portee);
-$attente = 0;
-$doublons = 0;
+$stats = SuiviService::stats(null);
+$fiches = array_sum(array_column($stats, 'personnes'));
+$totaux = ['declare' => 0, 'confirme' => 0, 'valide' => 0, 'en_examen' => 0, 'prive' => 0, 'rejete' => 0];
 foreach ($stats as $b) {
-    $attente += $b['liens']['declare'] + $b['liens']['confirme'] + $b['liens']['en_examen'];
-    $doublons += $b['doublons'];
-}
-haut('Tableau de bord', $u, 'tableau');
-echo '<h1>Tableau de bord</h1>';
-if ($admin) {
-    foreach (AdminService::branchesSansDeuxReferents() as $b) {
-        echo '<div class="alerte attention">La ' . e($b['nom']) . ' compte ' . (int) $b['nb'] . ' référent(s) au lieu de 2.</div>';
+    foreach ($b['liens'] as $s => $n) {
+        $totaux[$s] += $n;
     }
 }
+$utiles = array_sum($totaux) - $totaux['rejete'];
+$part = $utiles > 0 ? (int) round($totaux['valide'] / $utiles * 100) : 0;
+$manque = AdminService::branchesSansDeuxReferents();
+haut('Tableau de bord', $u, 'tableau', 'Vue d\'ensemble du recensement de la famille ZOCLI');
+if ($manque !== []) {
+    echo '<div class="alerte attention">Référents à compléter : ' . e(implode(', ', array_map(static fn(array $b): string => $b['nom'] . ' (' . $b['nb'] . ' sur 2)', $manque))) . '. <a href="' . e(url('utilisateurs')) . '">Attribuer les rôles</a></div>';
+}
 ?>
-<div class="grille">
-<div class="carte"><div class="chiffre"><?= array_sum(array_column($stats, 'personnes')) ?></div>fiches</div>
-<div class="carte"><div class="chiffre"><?= $attente ?></div><a href="<?= e(url('file')) ?>">liens en attente</a></div>
-<div class="carte"><div class="chiffre"><?= $doublons ?></div><a href="<?= e(url('doublons')) ?>">doublons à traiter</a></div>
+<div class="tuiles">
+  <div class="tuile"><b><?= $fiches ?></b><span>personnes recensées</span></div>
+  <div class="tuile or"><b><?= $part ?> %</b><span>des liens validés</span></div>
+  <a class="tuile terre" href="<?= e(url('file')) ?>"><b><?= $totaux['confirme'] + $totaux['en_examen'] ?></b><span>liens à décider</span></a>
+  <a class="tuile info" href="<?= e(url('doublons')) ?>"><b><?= array_sum(array_column($stats, 'doublons')) ?></b><span>doublons à traiter</span></a>
 </div>
-<div class="carte table"><table><caption class="muet">Liens par branche et par statut</caption>
-<tr><th scope="col">Branche</th><th scope="col">Fiches</th><?php foreach (['declare', 'confirme', 'valide', 'en_examen', 'prive', 'rejete'] as $s) { echo '<th scope="col">' . badge($s) . '</th>'; } ?></tr>
-<?php foreach ($stats as $b) { ?>
-<tr><td><?= e($b['nom']) ?></td><td><?= (int) $b['personnes'] ?></td><?php foreach ($b['liens'] as $n) { echo '<td>' . (int) $n . '</td>'; } ?></tr>
-<?php } ?>
-</table></div>
-<h2>Dernières actions</h2>
-<div class="carte table"><table><tr><th scope="col">Date (UTC)</th><th scope="col">Action</th><th scope="col">Fiche</th></tr>
-<?php foreach (SuiviService::journal($portee, [], 10, 0) as $j) { ?>
-<tr><td><?= e($j['cree_le']) ?></td><td><?= e($j['action']) ?></td><td><?= e($j['entite_type']) ?> <?= e($j['entite_id']) ?></td></tr>
-<?php } ?>
-</table></div>
+<div class="deux large remplir">
+  <section class="carte">
+    <h2>Avancement par branche</h2>
+    <?php foreach ($stats as $b) { $total = array_sum($b['liens']); ?>
+    <div class="branche"><div><strong><?= e($b['nom']) ?></strong><br><span class="muet"><?= (int) $b['personnes'] ?> fiches</span></div><?= barreStatuts($b['liens']) ?><span class="muet"><?= (int) $b['liens']['valide'] ?> / <?= $total ?></span></div>
+    <?php } ?>
+    <div class="legende"><?php foreach ($totaux as $s => $n) { echo badge($s) . ' ' . (int) $n . ' '; } ?></div>
+  </section>
+  <section class="carte">
+    <h2>Dernières actions</h2>
+    <?php foreach (SuiviService::journal(null, [], 7, 0) as $j) { ?>
+    <div class="action-journal"><span><?= e(libelleAction($j['action'])) ?></span><span class="muet"><?= e(substr($j['cree_le'], 5, 11)) ?></span></div>
+    <?php } ?>
+  </section>
+</div>
 <?php bas();
