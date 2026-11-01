@@ -22,6 +22,10 @@ final class OtpService
     public static function emettre(string $identifiant, string $destinataire, string $canal, ?string $emailDestination = null): void
     {
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        // Les adresses *.test ne reçoivent aucun email : en développement, leur code est fixe.
+        if (APP_ENV === 'dev' && OTP_CODE_TEST !== '' && str_ends_with($destinataire, '.test')) {
+            $code = OTP_CODE_TEST;
+        }
         Database::run('UPDATE otp_codes SET utilise_le = UTC_TIMESTAMP() WHERE identifiant = ? AND utilise_le IS NULL', [$identifiant]);
         Database::insert('otp_codes', [
             'identifiant' => $identifiant,

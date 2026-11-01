@@ -55,7 +55,15 @@ npx expo start            # téléphone sur le même Wi-Fi : scanner le QR code 
 npm run export:pwa        # construit la PWA et la copie dans le dossier app/ du backend
 ```
 
-En développement, l'application trouve seule l'adresse du PC. Émulateur Android sans serveur Expo : `10.0.2.2`, voir `src/config.ts`. Le code OTP des comptes de démonstration (`*.test`) n'est pas envoyé : il se lit à la fin de `storage/logs/otp.log`.
+En développement, l'application trouve seule l'adresse du PC. Émulateur Android sans serveur Expo : `10.0.2.2`, voir `src/config.ts`. Les comptes de démonstration (`*.test`) ne reçoivent pas d'email : en développement, leur code est `OTP_CODE_TEST` (`config.php`).
+
+| Rôle | Branche | Numéro |
+|---|---|---|
+| Référent | Houngbo | +2290100000009, +2290100000010 |
+| Référent | Dossou | +2290100000012, +2290100000013 |
+| Référent | Sènami | +2290100000023, +2290100000024 |
+| Relais | Houngbo | +2290100000011 |
+| Membre | | +2290100000016, +2290100000017, +2290100000018, +2290100000020 |
 
 Tests : `php tests/run.php` (base `recensement_zocli_test` recréée à chaque lancement ; le test Gramps utilise l'image Docker `zocli-gramps:local`, sinon il échoue et le signale).
 

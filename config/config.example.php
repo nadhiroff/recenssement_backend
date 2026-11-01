@@ -26,6 +26,8 @@ define('PUSH_DRIVER', getenv('ZOCLI_TEST_DB') ? 'log' : 'expo');   // 'expo' | '
 // Connexion admin : mot de passe puis code par email. Sans code en développement seulement.
 define('ADMIN_OTP_REQUIS', APP_ENV !== 'dev');
 define('OTP_CHANNEL', 'email');          // 'email' | 'whatsapp'
+// Code fixe des comptes de démonstration (*.test), en développement uniquement.
+define('OTP_CODE_TEST', '');
 define('OTP_TTL_SECONDS', 600);
 define('OTP_MAX_ATTEMPTS', 5);
 define('TOKEN_TTL_DAYS', 30);

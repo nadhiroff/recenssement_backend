@@ -138,6 +138,11 @@ test('Routage de repli ?route= quand la réécriture est absente', function () {
     statut(api('GET', '/inexistant', null, $j), 404);
 });
 
+test('Code fixe de démonstration refusé hors développement', function () {
+    statut(api('POST', '/auth/otp/request', ['telephone' => '+2290100000016']), 200);
+    statut(api('POST', '/auth/otp/verify', ['telephone' => '+2290100000016', 'code' => '123456']), 401);
+});
+
 test('Accès : adresse masquée, compte retiré signalé, session prolongée à l\'usage', function () {
     $r = statut(api('POST', '/auth/otp/request', ['telephone' => '+2290100000017']), 200);
     egal('d***@example.test', $r['data']['destination']);
