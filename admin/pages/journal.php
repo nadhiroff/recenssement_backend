@@ -6,14 +6,22 @@ use App\Core\Response;
 use App\Services\CsvExporter;
 use App\Services\JournalService;
 use App\Services\SuiviService;
+use App\Services\XlsxExporter;
 
 const PAR_PAGE = 12;
 
 $filtres = array_filter(array_intersect_key($_GET, ['action' => 1, 'entite_type' => 1, 'utilisateur_id' => 1]), static fn($v): bool => $v !== '');
 
+if (isset($_GET['excel'])) {
+    JournalService::ecrire((int) $u['id'], 'export.journal');
+    [$titres, $lignesExport] = CsvExporter::donneesJournal(SuiviService::journal(null, $filtres, 50000, 0), 'libelleAction');
+    Response::telechargement(XlsxExporter::tableau('Journal', $titres, $lignesExport), 'journal_zocli.xlsx', XlsxExporter::type());
+    exit;
+}
 if (isset($_GET['csv'])) {
     JournalService::ecrire((int) $u['id'], 'export.journal');
-    Response::telechargement(CsvExporter::journal(SuiviService::journal(null, $filtres, 50000, 0)), 'journal_zocli.csv', 'text/csv; charset=utf-8');
+    [$titres, $lignesExport] = CsvExporter::donneesJournal(SuiviService::journal(null, $filtres, 50000, 0), 'libelleAction');
+    Response::telechargement(CsvExporter::tableau($titres, $lignesExport), 'journal_zocli.csv', 'text/csv; charset=utf-8');
     exit;
 }
 $page = max(1, (int) ($_GET['n'] ?? 1));
@@ -25,7 +33,7 @@ $choix = '<form class="filtres" method="get"><input type="hidden" name="p" value
 foreach ($actions as $a) {
     $choix .= '<option value="' . e($a) . '"' . (($filtres['action'] ?? '') === $a ? ' selected' : '') . '>' . e(libelleAction($a)) . '</option>';
 }
-$choix .= '</select><button class="contour">Filtrer</button><a class="bouton contour" href="' . e(url('journal', $filtres + ['csv' => 1])) . '">Export CSV</a></form>';
+$choix .= '</select><button class="contour">Filtrer</button><a class="bouton contour" href="' . e(url('journal', $filtres + ['excel' => 1])) . '">Export Excel</a><a class="bouton contour" href="' . e(url('journal', $filtres + ['csv' => 1])) . '">CSV</a></form>';
 haut('Journal', $u, 'journal', 'Toutes les actions, sans modification possible', $choix);
 ?>
 <div class="table"><table><thead><tr><th scope="col">Date (UTC)</th><th scope="col">Qui</th><th scope="col">Action</th><th scope="col">Sur</th></tr></thead><tbody>

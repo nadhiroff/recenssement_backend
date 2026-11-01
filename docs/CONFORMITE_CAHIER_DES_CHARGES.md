@@ -50,7 +50,7 @@ Comparaison ligne à ligne de la note « Recensement famille ZOCLI – Note de p
 | Interface en français, libellés regroupés, audio prévu | Conforme | `src/i18n/fr.json`, clés audio prêtes |
 | Consentement horodaté, correction, retrait, accès par rôle | Conforme | |
 | Description des traitements pour l'APDP | Conforme | À compléter par la famille |
-| GEDCOM 5.5.1 lisible par Gramps, CSV admin | Conforme | Import Gramps réel sans erreur |
+| GEDCOM 5.5.1 lisible par Gramps, CSV admin | Conforme | Import Gramps réel sans erreur. Fichiers Excel en plus, dont l'arbre validé lisible |
 | Code remis dans un dépôt détenu par l'administrateur général | **Écart** | Dépôts actuels au nom de nadhiroff, et publics |
 | Hors périmètre respecté (photos, documents, messagerie, cotisations, impression) | Conforme | Aucun de ces modules |
 | Trois lots, documentation | Conforme | Installation, sauvegarde, guide d'une page |

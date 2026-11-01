@@ -187,7 +187,7 @@ function libelleAction(string $action): string
         'fusion.effectuee' => 'Fusion de fiches', 'fusion.annulee' => 'Fusion annulée', 'doublon.distinct' => 'Personnes distinctes', 'consentement.accepte' => 'Consentement',
         'union.declaration' => 'Union déclarée', 'union.validation' => 'Union validée', 'union.creation' => 'Union créée', 'union.rang' => 'Ordre des épouses modifié', 'role.changement' => 'Changement de rôle',
         'parametre.changement' => 'Paramètre modifié', 'branche.enregistrement' => 'Branche enregistrée', 'fondateur.enregistrement' => 'Fondateur enregistré',
-        'export.gedcom' => 'Export GEDCOM', 'export.csv' => 'Export CSV', 'export.journal' => 'Export du journal', 'tache.execution' => 'Tâche exécutée',
+        'export.gedcom' => 'Export GEDCOM', 'export.csv' => 'Export CSV', 'export.excel' => 'Export Excel', 'export.journal' => 'Export du journal', 'tache.execution' => 'Tâche exécutée',
         'tache.lancement_manuel' => 'Tâche lancée', 'sauvegarde.restauration' => 'Restauration', 'sauvegarde.telechargement' => 'Sauvegarde téléchargée',
         'compte.modification' => 'Accès modifiés', 'compte.reactivation' => 'Compte rétabli', 'compte.email' => 'Email changé',
         'variante.enregistrement' => 'Variante ajoutée', 'variante.suppression' => 'Variante supprimée', 'variante.recalcul' => 'Noms recalculés'];

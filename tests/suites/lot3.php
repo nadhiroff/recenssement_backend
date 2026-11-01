@@ -220,10 +220,44 @@ test('GEDCOM : date complète seulement pour une personne décédée', function 
 test('CSV : BOM UTF-8, point-virgule, téléphone conservé, formule neutralisée', function () {
     $c = CsvExporter::fiches();
     vrai(str_starts_with($c, "\xEF\xBB\xBF"), 'BOM');
-    vrai(str_contains(strtok($c, "\n"), 'id;nom;'), 'entête');
-    vrai(str_contains($c, '+2290100000009'), 'téléphone');
+    vrai(str_contains(strtok($c, "\n"), 'N°;Nom;'), 'entête');
+    vrai(str_contains($c, '+229 01 00 00 00 09'), 'téléphone en texte, jamais 2,29E+12');
     vrai(str_contains(CsvExporter::tableau(['a'], [['=SOMME(A1)']]), "'=SOMME"), 'formule');
-    vrai(str_contains(CsvExporter::tableau(['a'], [['+2290100000009']]), "\n+2290100000009"), 'numéro intact');
+    vrai(!str_contains(CsvExporter::tableau(['a'], [['+229 01 00 00 00 09']]), "'+229"), 'numéro intact');
+    egal('+228 90 12 34 56', CsvExporter::telephone('+22890123456'));
+});
+
+test('Excel : vrai classeur, titres gris et gras, téléphone en texte', function () {
+    [$titres, $lignes] = CsvExporter::donneesFiches();
+    $x = \App\Services\XlsxExporter::tableau('Fiches', $titres, $lignes);
+    $f = tempnam(sys_get_temp_dir(), 'xl');
+    file_put_contents($f, $x);
+    $z = new \ZipArchive();
+    egal(true, $z->open($f), 'archive valide');
+    foreach (['[Content_Types].xml', 'xl/workbook.xml', 'xl/styles.xml', 'xl/worksheets/sheet1.xml'] as $p) {
+        vrai($z->locateName($p) !== false, "$p absent");
+        vrai(simplexml_load_string((string) $z->getFromName($p)) !== false, "$p mal formé");
+    }
+    $feuille = (string) $z->getFromName('xl/worksheets/sheet1.xml');
+    $styles = (string) $z->getFromName('xl/styles.xml');
+    vrai(str_contains($feuille, '<c r="A1" s="1" t="inlineStr"><is><t xml:space="preserve">N°</t>'), 'titre N° stylé');
+    vrai(str_contains($styles, '<b/>') && str_contains($styles, 'FFD9D9D9'), 'gris et gras');
+    vrai(str_contains($feuille, 't="inlineStr"><is><t xml:space="preserve">+229 01 00 00 00 09</t>'), 'téléphone en texte');
+    $z->close();
+    unlink($f);
+});
+
+test('Arbre lisible : liens validés seulement, sans téléphone ni fiche privée', function () {
+    [$titres, $lignes] = CsvExporter::donneesArbre();
+    egal(['N°', 'Nom', 'Sexe', 'Naissance', 'Décès', 'Branche', 'Père', 'Mère', 'Conjoint(s)', 'Enfants'], $titres);
+    $texte = json_encode($lignes, JSON_UNESCAPED_UNICODE);
+    vrai(!str_contains($texte, 'Zinsou') && !str_contains($texte, 'Mawuena') && !preg_match('/\+\d{3}/', $texte), 'donnée exposée');
+    $kossi = array_values(array_filter($lignes, static fn(array $l): bool => $l[0] === 9))[0];
+    egal('Mawuli ZOCLI', $kossi[6]);
+    egal('Afi ADJOVI', $kossi[7]);
+    egal('vers 1968', $kossi[3]);
+    $mawuli = array_values(array_filter($lignes, static fn(array $l): bool => $l[0] === 5))[0];
+    egal('Afi ADJOVI, Akouvi HOUNSOU', $mawuli[8]);
 });
 
 test('Exports réservés à l\'admin et journalisés', function () {

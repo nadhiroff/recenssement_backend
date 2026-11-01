@@ -201,6 +201,16 @@ test('Foyers : l\'administrateur change l\'ordre des épouses', function () use 
     egal(1, (int) Database::value('SELECT rang_epouse FROM unions WHERE id = 1'));
 });
 
+test('Exports Excel depuis le panneau', function () use ($connexionAdmin) {
+    $n = $connexionAdmin();
+    foreach (['exports&telecharger=fiches', 'exports&telecharger=arbre', 'journal&excel=1'] as $q) {
+        $n->aller("index.php?p=$q");
+        egal(200, $n->http, $q);
+        vrai(str_starts_with($n->corps, 'PK'), "$q n'est pas un classeur");
+    }
+    vrai(str_contains($GLOBALS['dernier_entetes'], 'spreadsheetml'), 'type de fichier');
+});
+
 test('Connexion : page unique, sans création de compte ni accès référent', function () {
     $n = new Navigateur();
     $n->aller('index.php?p=connexion');
