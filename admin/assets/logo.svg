@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Recensement ZOCLI">
+  <rect x="11" y="11" width="42" height="42" rx="9" transform="rotate(45 32 32)" fill="#1F6B4F" stroke="#D9A520" stroke-width="4"/>
+  <path d="M32 16v20m0-7H21v7m11-7h11v7" fill="none" stroke="#FAF6EF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="32" cy="16" r="4" fill="#D9A520"/>
+  <circle cx="21" cy="39" r="4" fill="#E08A50"/>
+  <circle cx="32" cy="39" r="4" fill="#FAF6EF"/>
+  <circle cx="43" cy="39" r="4" fill="#E08A50"/>
+</svg>

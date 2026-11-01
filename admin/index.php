@@ -8,7 +8,7 @@ require dirname(__DIR__) . '/src/bootstrap.php';
 require __DIR__ . '/lib.php';
 
 Response::securite();
-header("Content-Security-Policy: default-src 'none'; style-src 'self'; script-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
+header("Content-Security-Policy: default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self'; img-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
 header('Content-Type: text/html; charset=utf-8');
 demarrerSession();
 

@@ -9,7 +9,7 @@ use App\Services\ConfirmationService;
 require __DIR__ . '/src/bootstrap.php';
 
 Response::securite();
-header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'");
+header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; form-action 'self'; base-uri 'none'");
 header('Content-Type: text/html; charset=utf-8');
 
 $e = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
@@ -47,7 +47,7 @@ try {
 ?>
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Confirmation — Recensement ZOCLI</title>
+<title>Confirmation — Recensement ZOCLI</title><link rel="icon" type="image/svg+xml" href="admin/assets/logo.svg">
 <style>
 :root{color-scheme:light dark;--f:#FAF6EF;--c:#fff;--t:#1E2420;--p:#1F6B4F;--b:#E3DCCF}
 @media(prefers-color-scheme:dark){:root{--f:#121614;--c:#1C2320;--t:#ECEFEA;--p:#3FA37C;--b:#303A35}}
@@ -58,6 +58,7 @@ button{display:block;width:100%;min-height:52px;font:600 17px system-ui;border-r
 button.oui{background:var(--p);color:#fff}
 .bouton{display:flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:52px;margin-top:12px;border-radius:14px;color:var(--p);font-weight:600;text-decoration:none}
 </style></head><body><main>
+<img src="admin/assets/logo.svg" alt="" width="56" height="56">
 <h1>Famille ZOCLI</h1>
 <?php if ($message !== null): ?>
 <p><?= $e($message) ?></p>

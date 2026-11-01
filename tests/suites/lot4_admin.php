@@ -189,6 +189,22 @@ test('Paramètres : chaque réglage de la page est lu et borné', function () us
     \App\Services\ParametreService::viderCache();
 });
 
+test('Connexion admin : les réussites ne bloquent pas, les échecs oui', function () use ($connexionAdmin) {
+    reinitialiserLimites();
+    for ($i = 0; $i < 12; $i++) {
+        $connexionAdmin();
+    }
+    $n = $connexionAdmin();
+    $n->aller('index.php?p=tableau');
+    egal(200, $n->http, 'admin bloqué par ses propres connexions');
+    $n = new Navigateur();
+    for ($i = 0; $i < 9; $i++) {
+        $n->poster('connexion', ['mode' => 'admin', 'email' => 'admin.demo@example.test', 'mot_de_passe' => 'faux']);
+    }
+    vrai(str_contains($n->corps, 'Trop de tentatives'), 'échecs répétés');
+    reinitialiserLimites();
+});
+
 test('Connexion : page unique, sans création de compte ni accès référent', function () {
     $n = new Navigateur();
     $n->aller('index.php?p=connexion');

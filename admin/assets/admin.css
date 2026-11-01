@@ -12,7 +12,7 @@ h1,h2,h3,p{margin:0}
 .app{display:grid;grid-template-columns:244px minmax(0,1fr);height:100dvh;overflow:hidden}
 .barre{background:var(--vert-nuit);color:#E8EFEB;display:flex;flex-direction:column;padding:16px 12px;gap:4px;overflow-y:auto}
 .marque{display:flex;align-items:center;gap:12px;padding:4px 8px 14px}
-.losange{width:30px;height:30px;flex:none;background:var(--terre);transform:rotate(45deg);border-radius:6px;border:3px solid var(--or);margin:4px}
+.logo{width:44px;height:44px;flex:none}
 .marque strong{display:block;font:700 16px/1.2 var(--titre);color:#fff}
 .marque span{font-size:12px;color:#A9BDB3}
 .groupe{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8FA89B;padding:12px 10px 4px}
@@ -115,6 +115,8 @@ html:has(.page-connexion){height:100%;overflow:hidden}
 .page-connexion{height:100dvh;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:16px;background:linear-gradient(145deg,#123F30,#1F6B4F)}
 .acces{width:100%;max-width:380px;background:var(--carte);border-radius:20px;padding:28px 24px;box-shadow:0 12px 32px rgba(0,0,0,.25)}
 .acces .marque{padding:0 0 18px}
+.acces .logo{width:56px;height:56px}
+.acces .logo{width:56px;height:56px}
 .acces .marque strong{color:var(--texte);font-size:18px}
 .acces .marque span{color:var(--doux);font-size:13px}
 .acces h1{font:700 22px/1.2 var(--titre);margin-bottom:4px}

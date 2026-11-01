@@ -117,8 +117,8 @@ function haut(string $titre, ?array $u, string $actif = '', string $sousTitre = 
         'doublons' => (int) Database::value("SELECT COUNT(*) FROM doublons_suspects WHERE statut = 'a_traiter'"),
     ];
     echo '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">';
-    echo '<title>' . e($titre) . ' — ' . e(APP_NAME) . '</title><link rel="stylesheet" href="assets/admin.css"></head><body><div class="app">';
-    echo '<aside class="barre"><div class="marque"><div class="losange" aria-hidden="true"></div><div><strong>Recensement ZOCLI</strong><span>Administration</span></div></div>';
+    echo '<title>' . e($titre) . ' — ' . e(APP_NAME) . '</title><link rel="icon" type="image/svg+xml" href="assets/logo.svg"><link rel="icon" type="image/svg+xml" href="assets/logo.svg"><link rel="stylesheet" href="assets/admin.css"></head><body><div class="app">';
+    echo '<aside class="barre"><div class="marque"><img class="logo" src="assets/logo.svg" alt=""><div><strong>Recensement ZOCLI</strong><span>Administration</span></div></div>';
     echo '<nav aria-label="Menu principal">';
     foreach ($groupes as $groupe => $items) {
         echo '<div class="groupe">' . e($groupe) . '</div>';

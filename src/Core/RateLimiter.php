@@ -25,4 +25,10 @@ final class RateLimiter
             throw new ApiException(429, 'trop_de_requetes', 'Trop de tentatives. Réessayez plus tard.', ['retry_after' => $attente]);
         }
     }
+
+    /** Une connexion réussie remet le compteur à zéro : seuls les échecs doivent finir par bloquer. */
+    public static function effacer(string $portee, string $identifiant): void
+    {
+        Database::run('DELETE FROM rate_limits WHERE cle = ?', [hash('sha256', $portee . '|' . $identifiant)]);
+    }
 }

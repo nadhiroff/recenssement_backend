@@ -20,6 +20,7 @@ $ouvrirSession = static function (int $id): never {
     $_SESSION['utilisateur_id'] = $id;
     Database::run('UPDATE utilisateurs SET derniere_connexion = UTC_TIMESTAMP() WHERE id = ?', [$id]);
     JournalService::ecrire($id, 'auth.connexion', 'utilisateur', $id, null, ['canal' => 'web']);
+    RateLimiter::effacer('login_admin', (string) Request::ip());
     rediriger('tableau');
 };
 
@@ -59,10 +60,10 @@ try {
 ?>
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Connexion — <?= e(APP_NAME) ?></title><link rel="stylesheet" href="assets/admin.css"></head>
+<title>Connexion — <?= e(APP_NAME) ?></title><link rel="icon" type="image/svg+xml" href="assets/logo.svg"><link rel="stylesheet" href="assets/admin.css"></head>
 <body class="page-connexion">
 <main class="acces">
-  <div class="marque"><div class="losange" aria-hidden="true"></div><div><strong>Recensement ZOCLI</strong><span>Espace d'administration</span></div></div>
+  <div class="marque"><img class="logo" src="assets/logo.svg" alt=""><div><strong>Recensement ZOCLI</strong><span>Espace d'administration</span></div></div>
   <?php if ($etape === 'code') { ?>
   <h1>Code de connexion</h1>
   <p class="muet">Saisissez le code à 6 chiffres reçu par email.</p>
@@ -73,6 +74,7 @@ try {
   <form method="post" action="<?= e(url('connexion')) ?>"><?= champCsrf() ?><input type="hidden" name="mode" value="recommencer"><button class="lien">Recommencer</button></form>
   <?php } else { ?>
   <h1>Connexion</h1>
+  <p class="muet">Réservé à l'administrateur général.</p>
   <?php if ($erreur !== null) { echo '<div class="alerte erreur" role="alert">' . e($erreur) . '</div>'; } ?>
   <form method="post" action="<?= e(url('connexion')) ?>"><?= champCsrf() ?><input type="hidden" name="mode" value="admin">
     <label for="email">Email</label><input id="email" type="email" name="email" autocomplete="username" required autofocus>
