@@ -59,8 +59,8 @@ $connexionAdmin = static function (): Navigateur {
 
 $connexionReferent = static function (): Navigateur {
     $n = new Navigateur();
-    $n->poster('connexion', ['mode' => 'referent', 'telephone' => '+22900000010']);
-    $n->poster('connexion', ['mode' => 'code', 'code' => dernierOtp('+22900000010')]);
+    $n->poster('connexion', ['mode' => 'referent', 'telephone' => '+2290100000010']);
+    $n->poster('connexion', ['mode' => 'code', 'code' => dernierOtp('+2290100000010')]);
     return $n;
 };
 
@@ -149,7 +149,7 @@ test('Droits : un référent n\'accède pas aux pages admin, mais à ses files',
 
 test('Droits : un membre n\'entre pas dans le panneau', function () {
     $n = new Navigateur();
-    $n->poster('connexion', ['mode' => 'referent', 'telephone' => '+22900000020']);
+    $n->poster('connexion', ['mode' => 'referent', 'telephone' => '+2290100000020']);
     $n->poster('connexion', ['mode' => 'code', 'code' => '123456']);
     $n->aller('index.php?p=tableau');
     egal(302, $n->http);

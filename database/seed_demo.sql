@@ -1,4 +1,4 @@
--- Données de démonstration ENTIÈREMENT FICTIVES (numéros +22900000xxx, domaines example.test).
+-- Données de démonstration ENTIÈREMENT FICTIVES (numéros +2290100000xxx, domaines example.test).
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -15,31 +15,31 @@ INSERT INTO personnes (id, sexe, annee_naissance, precision_naissance, annee_dec
  (4,  'F', 1920, 'environ',  1990, 'environ', 1, 3, NULL, NULL, 'Sahouè Doutou', 0, 0, 1),
  -- Génération 2 : père à deux épouses (Mawuli, id 5 ; épouses 6 et 7)
  (5,  'M', 1940, 'environ',  2010, 'exacte',  1, 1, NULL, NULL, 'Cotonou', 0, 0, 1),
- (6,  'F', 1945, 'environ',  NULL, 'inconnue',0, 1, '+22900000006', 'afi.demo@example.test', 'Cotonou', 0, 0, 1),
- (7,  'F', 1950, 'environ',  NULL, 'inconnue',0, 1, '+22900000007', NULL, 'Lomé', 0, 0, 1),
+ (6,  'F', 1945, 'environ',  NULL, 'inconnue',0, 1, '+2290100000006', 'afi.demo@example.test', 'Cotonou', 0, 0, 1),
+ (7,  'F', 1950, 'environ',  NULL, 'inconnue',0, 1, '+2290100000007', NULL, 'Lomé', 0, 0, 1),
  (8,  'M', 1945, 'environ',  NULL, 'inconnue',1, 2, NULL, NULL, 'Sahouè Doutou', 0, 0, 1),
  -- Génération 3 : Kossi ZOCLI né vers 1968, père connu (Mawuli)
- (9,  'M', 1968, 'environ',  NULL, 'inconnue',0, 1, '+22900000009', 'kossi.demo@example.test', 'Cotonou', 0, 0, 1),
- (10, 'F', 1972, 'exacte',   NULL, 'inconnue',0, 1, '+22900000010', 'enyonam.demo@example.test', 'Porto-Novo', 0, 0, 1),
- (11, 'M', 1975, 'exacte',   NULL, 'inconnue',0, 1, '+22900000011', 'sena.demo@example.test', 'Lomé', 0, 0, 1),
- (12, 'M', 1970, 'exacte',   NULL, 'inconnue',0, 2, '+22900000012', 'yao.demo@example.test', 'Cotonou', 0, 0, 1),
- (13, 'F', 1974, 'exacte',   NULL, 'inconnue',0, 2, '+22900000013', 'ayawa.demo@example.test', 'Abomey', 0, 0, 1),
+ (9,  'M', 1968, 'environ',  NULL, 'inconnue',0, 1, '+2290100000009', 'kossi.demo@example.test', 'Cotonou', 0, 0, 1),
+ (10, 'F', 1972, 'exacte',   NULL, 'inconnue',0, 1, '+2290100000010', 'enyonam.demo@example.test', 'Porto-Novo', 0, 0, 1),
+ (11, 'M', 1975, 'exacte',   NULL, 'inconnue',0, 1, '+2290100000011', 'sena.demo@example.test', 'Lomé', 0, 0, 1),
+ (12, 'M', 1970, 'exacte',   NULL, 'inconnue',0, 2, '+2290100000012', 'yao.demo@example.test', 'Cotonou', 0, 0, 1),
+ (13, 'F', 1974, 'exacte',   NULL, 'inconnue',0, 2, '+2290100000013', 'ayawa.demo@example.test', 'Abomey', 0, 0, 1),
  -- Paire quasi identique ZOCLI / ZOKLI
  (14, 'M', 1978, 'environ',  NULL, 'inconnue',0, 2, NULL, NULL, 'Cotonou', 0, 0, 1),
  (15, 'M', 1979, 'exacte',   NULL, 'inconnue',0, 2, NULL, NULL, 'Paris', 0, 0, 1),
  -- Génération 4
- (16, 'M', 1995, 'exacte',   NULL, 'inconnue',0, 1, '+22900000016', 'edem.demo@example.test', 'Cotonou', 0, 0, 1),
- (17, 'F', 1998, 'exacte',   NULL, 'inconnue',0, 1, '+22900000017', 'dela.demo@example.test', 'Lyon', 0, 0, 1),
- (18, 'M', 2000, 'exacte',   NULL, 'inconnue',0, 2, '+22900000018', 'koffi.demo@example.test', 'Cotonou', 0, 0, 1),
+ (16, 'M', 1995, 'exacte',   NULL, 'inconnue',0, 1, '+2290100000016', 'edem.demo@example.test', 'Cotonou', 0, 0, 1),
+ (17, 'F', 1998, 'exacte',   NULL, 'inconnue',0, 1, '+2290100000017', 'dela.demo@example.test', 'Lyon', 0, 0, 1),
+ (18, 'M', 2000, 'exacte',   NULL, 'inconnue',0, 2, '+2290100000018', 'koffi.demo@example.test', 'Cotonou', 0, 0, 1),
  -- Fiche privée (situation délicate)
- (19, 'F', 1990, 'environ',  NULL, 'inconnue',0, 1, '+22900000019', 'prive.demo@example.test', 'Cotonou', 0, 1, 1),
+ (19, 'F', 1990, 'environ',  NULL, 'inconnue',0, 1, '+2290100000019', 'prive.demo@example.test', 'Cotonou', 0, 1, 1),
  -- Autres statuts
- (20, 'F', 1992, 'exacte',   NULL, 'inconnue',0, 1, '+22900000020', 'mawuena.demo@example.test', 'Ouidah', 0, 0, 1),
- (21, 'M', 1994, 'exacte',   NULL, 'inconnue',0, 1, '+22900000021', 'kodjo.demo@example.test', 'Cotonou', 0, 0, 1),
- (22, 'F', 1996, 'exacte',   NULL, 'inconnue',0, 2, '+22900000022', 'abla.demo@example.test', 'Lomé', 0, 0, 1),
+ (20, 'F', 1992, 'exacte',   NULL, 'inconnue',0, 1, '+2290100000020', 'mawuena.demo@example.test', 'Ouidah', 0, 0, 1),
+ (21, 'M', 1994, 'exacte',   NULL, 'inconnue',0, 1, '+2290100000021', 'kodjo.demo@example.test', 'Cotonou', 0, 0, 1),
+ (22, 'F', 1996, 'exacte',   NULL, 'inconnue',0, 2, '+2290100000022', 'abla.demo@example.test', 'Lomé', 0, 0, 1),
  -- Branche 3
- (23, 'M', 1950, 'environ',  NULL, 'inconnue',0, 3, '+22900000023', 'tossou.demo@example.test', 'Sahouè Doutou', 0, 0, 1),
- (24, 'F', 1955, 'environ',  NULL, 'inconnue',0, 3, '+22900000024', 'adjo.demo@example.test', 'Sahouè Doutou', 0, 0, 1),
+ (23, 'M', 1950, 'environ',  NULL, 'inconnue',0, 3, '+2290100000023', 'tossou.demo@example.test', 'Sahouè Doutou', 0, 0, 1),
+ (24, 'F', 1955, 'environ',  NULL, 'inconnue',0, 3, '+2290100000024', 'adjo.demo@example.test', 'Sahouè Doutou', 0, 0, 1),
  -- Administrateur général (fiche distincte de la lignée évaluée)
  (25, 'I', 1980, 'exacte',   NULL, 'inconnue',0, NULL, NULL, 'admin.demo@example.test', 'Cotonou', 0, 0, 1);
 
@@ -79,17 +79,17 @@ INSERT INTO noms_tokens (nom_id, token) SELECT id, valeur_normalisee FROM noms_p
 INSERT INTO utilisateurs (id, personne_id, telephone_whatsapp, email, role_global, mot_de_passe_hash) VALUES
  -- Mot de passe de démonstration : DemoAdmin2026!
  (1, 25, NULL, 'admin.demo@example.test', 'admin', '$2y$12$lUjzxYLvDEGfF/q.o3QINOIcaFnb3I8FRK2vT/iu0cXRjJgbaqRnK'),
- (2, 9,  '+22900000009', 'kossi.demo@example.test', 'referent', NULL),
- (3, 10, '+22900000010', 'enyonam.demo@example.test', 'referent', NULL),
- (4, 12, '+22900000012', 'yao.demo@example.test', 'referent', NULL),
- (5, 13, '+22900000013', 'ayawa.demo@example.test', 'referent', NULL),
- (6, 23, '+22900000023', 'tossou.demo@example.test', 'referent', NULL),
- (7, 24, '+22900000024', 'adjo.demo@example.test', 'referent', NULL),
- (8, 11, '+22900000011', 'sena.demo@example.test', 'relais', NULL),
- (9, 16, '+22900000016', 'edem.demo@example.test', 'membre', NULL),
- (10,17, '+22900000017', 'dela.demo@example.test', 'membre', NULL),
- (11,18, '+22900000018', 'koffi.demo@example.test', 'membre', NULL),
- (12,20, '+22900000020', 'mawuena.demo@example.test', 'membre', NULL);
+ (2, 9,  '+2290100000009', 'kossi.demo@example.test', 'referent', NULL),
+ (3, 10, '+2290100000010', 'enyonam.demo@example.test', 'referent', NULL),
+ (4, 12, '+2290100000012', 'yao.demo@example.test', 'referent', NULL),
+ (5, 13, '+2290100000013', 'ayawa.demo@example.test', 'referent', NULL),
+ (6, 23, '+2290100000023', 'tossou.demo@example.test', 'referent', NULL),
+ (7, 24, '+2290100000024', 'adjo.demo@example.test', 'referent', NULL),
+ (8, 11, '+2290100000011', 'sena.demo@example.test', 'relais', NULL),
+ (9, 16, '+2290100000016', 'edem.demo@example.test', 'membre', NULL),
+ (10,17, '+2290100000017', 'dela.demo@example.test', 'membre', NULL),
+ (11,18, '+2290100000018', 'koffi.demo@example.test', 'membre', NULL),
+ (12,20, '+2290100000020', 'mawuena.demo@example.test', 'membre', NULL);
 
 INSERT INTO referents_branche (utilisateur_id, branche_id) VALUES (2,1),(3,1),(4,2),(5,2),(6,3),(7,3);
 INSERT INTO relais_branche (utilisateur_id, branche_id) VALUES (8,1);

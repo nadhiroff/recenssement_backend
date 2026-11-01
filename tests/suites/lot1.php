@@ -52,10 +52,26 @@ test('Score : poids modifiés en base, sans redéploiement', function () {
     ParametreService::viderCache();
 });
 
+test('Téléphone : format béninois +22901, ancien numéro converti, autres pays acceptés', function () {
+    $v = static fn(string $t): ?string => \App\Core\Validator::telephone(['t' => $t], 't');
+    egal('+2290197123456', $v('+229 01 97 12 34 56'));
+    egal('+2290197123456', $v('+22997123456'), 'ancien format');
+    egal('+22890123456', $v('+228 90 12 34 56'));
+    foreach (['+2290297123456', '+229971234', '22997123456'] as $mauvais) {
+        $refus = false;
+        try {
+            $v($mauvais);
+        } catch (\App\Core\ApiException) {
+            $refus = true;
+        }
+        vrai($refus, $mauvais);
+    }
+});
+
 section('Lot 1 — authentification');
 
 test('OTP : code haché, connexion, /me', function () {
-    $t = '+22961000001';
+    $t = '+2290161000001';
     statut(api('POST', '/auth/otp/request', ['telephone' => $t, 'email' => 'nouveau1@example.test']), 200);
     $code = dernierOtp($t);
     $ligne = Database::one('SELECT * FROM otp_codes WHERE identifiant = ? ORDER BY id DESC LIMIT 1', [$t]);
@@ -68,11 +84,11 @@ test('OTP : code haché, connexion, /me', function () {
 });
 
 test('OTP : premier accès sans email refusé', function () {
-    egal('email_requis', statut(api('POST', '/auth/otp/request', ['telephone' => '+22961000002']), 422)['error']['code']);
+    egal('email_requis', statut(api('POST', '/auth/otp/request', ['telephone' => '+2290161000002']), 422)['error']['code']);
 });
 
 test('OTP : 5 tentatives maximum, code réutilisé refusé, expiration', function () {
-    $t = '+22961000003';
+    $t = '+2290161000003';
     api('POST', '/auth/otp/request', ['telephone' => $t, 'email' => 'n3@example.test']);
     for ($i = 0; $i < 5; $i++) {
         statut(api('POST', '/auth/otp/verify', ['telephone' => $t, 'code' => '000000']), 401);
@@ -88,7 +104,7 @@ test('OTP : 5 tentatives maximum, code réutilisé refusé, expiration', functio
 });
 
 test('OTP : limitation de débit par numéro', function () {
-    $t = '+22961000004';
+    $t = '+2290161000004';
     for ($i = 0; $i < 5; $i++) {
         statut(api('POST', '/auth/otp/request', ['telephone' => $t, 'email' => 'n4@example.test']), 200);
     }
@@ -96,8 +112,8 @@ test('OTP : limitation de débit par numéro', function () {
 });
 
 test('OTP : un compte existant ne peut pas être détourné vers un autre email', function () {
-    statut(api('POST', '/auth/otp/request', ['telephone' => '+22900000016', 'email' => 'pirate@example.test']), 200);
-    egal(null, Database::value("SELECT email_destination FROM otp_codes WHERE identifiant = '+22900000016' ORDER BY id DESC LIMIT 1"));
+    statut(api('POST', '/auth/otp/request', ['telephone' => '+2290100000016', 'email' => 'pirate@example.test']), 200);
+    egal(null, Database::value("SELECT email_destination FROM otp_codes WHERE identifiant = '+2290100000016' ORDER BY id DESC LIMIT 1"));
     $mail = file(BASE_PATH . '/storage/logs/mail.log', FILE_IGNORE_NEW_LINES);
     vrai(str_contains(end($mail), substr(hash('sha256', 'edem.demo@example.test'), 0, 8)), 'code envoyé ailleurs');
 });
@@ -109,7 +125,7 @@ test('Numéro de téléphone absent des journaux techniques', function () {
 });
 
 test('Déconnexion : jeton révoqué ; sans jeton 401', function () {
-    $j = connecter('+22961000005', 'n5@example.test');
+    $j = connecter('+2290161000005', 'n5@example.test');
     statut(api('POST', '/auth/logout', [], $j), 200);
     statut(api('GET', '/me', null, $j), 401);
     statut(api('GET', '/me'), 401);
@@ -117,7 +133,7 @@ test('Déconnexion : jeton révoqué ; sans jeton 401', function () {
 
 test('Routage de repli ?route= quand la réécriture est absente', function () {
     statut(api('GET', '/me', null, null, true), 401);
-    $j = connecter('+22961000005');
+    $j = connecter('+2290161000005');
     vrai(count(statut(api('GET', '/branches', null, $j, true), 200)['data']) === 3, 'branches');
     statut(api('GET', '/inexistant', null, $j), 404);
 });
@@ -134,7 +150,7 @@ $inscription = static fn(array $extra = []): array => $extra + [
 ];
 
 test('Recette 1 : inscription complète, rejeu même client_uuid sans doublon', function () use ($inscription) {
-    $j = connecter('+22961000006', 'n6@example.test');
+    $j = connecter('+2290161000006', 'n6@example.test');
     $corps = $inscription();
     $avant = (int) Database::value('SELECT COUNT(*) FROM personnes');
     $r = statut(api('POST', '/inscriptions', $corps, $j), 201);
@@ -142,7 +158,7 @@ test('Recette 1 : inscription complète, rejeu même client_uuid sans doublon', 
     egal($avant + 2, (int) Database::value('SELECT COUNT(*) FROM personnes'), 'personne + mère');
     egal(2, (int) Database::value("SELECT COUNT(*) FROM liens_parente WHERE enfant_id = ? AND statut = 'declare'", [$id]));
     vrai(Database::value('SELECT accepte_le FROM consentements WHERE personne_id = ?', [$id]) !== null, 'consentement');
-    egal('+22961000006', Database::value('SELECT telephone_whatsapp FROM personnes WHERE id = ?', [$id]));
+    egal('+2290161000006', Database::value('SELECT telephone_whatsapp FROM personnes WHERE id = ?', [$id]));
 
     $r2 = statut(api('POST', '/inscriptions', $corps, $j), 200, 'rejeu');
     egal(true, $r2['data']['rejoue']);
@@ -153,7 +169,7 @@ test('Recette 1 : inscription complète, rejeu même client_uuid sans doublon', 
 });
 
 test('Envois simultanés du même client_uuid : une seule fiche', function () use ($inscription) {
-    $j = connecter('+22961000020', 'n20@example.test');
+    $j = connecter('+2290161000020', 'n20@example.test');
     $corps = $inscription(['identite' => identiteTest('Simultané')]);
     $mh = curl_multi_init();
     $hs = [];
@@ -172,14 +188,14 @@ test('Envois simultanés du même client_uuid : une seule fiche', function () us
 });
 
 test('Inscription : sans consentement refusée, rien de créé', function () use ($inscription) {
-    $j = connecter('+22961000007', 'n7@example.test');
+    $j = connecter('+2290161000007', 'n7@example.test');
     $avant = (int) Database::value('SELECT COUNT(*) FROM personnes');
     egal('consentement', statut(api('POST', '/inscriptions', $inscription(['consentement' => false]), $j), 422)['error']['champ']);
     egal($avant, (int) Database::value('SELECT COUNT(*) FROM personnes'));
 });
 
 test('Inscription : fiche ressemblante non vue → 409 avec candidats ; annulation complète', function () use ($inscription) {
-    $j = connecter('+22961000008', 'n8@example.test');
+    $j = connecter('+2290161000008', 'n8@example.test');
     $avant = (int) Database::value('SELECT COUNT(*) FROM personnes');
     $corps = $inscription(['pere' => ['nouvelle' => ['nom_famille' => 'ZOCLI', 'prenoms' => 'Kossi', 'annee_naissance' => 1968, 'pere_nom' => 'Mawuli']]]);
     $r = statut(api('POST', '/inscriptions', $corps, $j), 409);
@@ -191,7 +207,7 @@ test('Inscription : fiche ressemblante non vue → 409 avec candidats ; annulati
 });
 
 test('Inscription : deux noms supplémentaires servent à la recherche', function () use ($inscription) {
-    $j = connecter('+22961000009', 'n9@example.test');
+    $j = connecter('+2290161000009', 'n9@example.test');
     $id = statut(api('POST', '/inscriptions', $inscription([
         'identite' => identiteTest('Rodrigue', ['autres_noms' => [['type' => 'vodoun', 'valeur' => 'Dansou'], ['type' => 'surnom', 'valeur' => 'Le Grand']]]),
     ]), $j), 201)['data']['personne_id'];
@@ -201,10 +217,10 @@ test('Inscription : deux noms supplémentaires servent à la recherche', functio
 });
 
 test('Inscription : année approximative et date absente acceptées', function () use ($inscription) {
-    $j = connecter('+22961000010', 'n10@example.test');
+    $j = connecter('+2290161000010', 'n10@example.test');
     $id = statut(api('POST', '/inscriptions', $inscription(['identite' => ['nom_famille' => 'ZOCLI', 'prenoms' => 'Sans Date', 'sexe' => 'F']]), $j), 201)['data']['personne_id'];
     egal('inconnue', Database::value('SELECT precision_naissance FROM personnes WHERE id = ?', [$id]));
-    $j2 = connecter('+22961000011', 'n11@example.test');
+    $j2 = connecter('+2290161000011', 'n11@example.test');
     statut(api('POST', '/inscriptions', $inscription(['identite' => identiteTest('Futur', ['annee_naissance' => 2999])]), $j2), 422);
 });
 
@@ -221,7 +237,7 @@ test('Lien : un seul père actif par enfant (contrainte en base)', function () {
 section('Lot 1 — rapprochement');
 
 test('Recette 2 : « Kossi », né vers 1968, bon grand-père → fiche proposée', function () {
-    $j = connecter('+22961000012', 'n12@example.test');
+    $j = connecter('+2290161000012', 'n12@example.test');
     $r = statut(api('POST', '/rapprochement/candidats', ['prenoms' => 'Kossi', 'annee_naissance' => 1968, 'pere_id' => 5, 'branche_id' => 1], $j), 200);
     egal(9, $r['data'][0]['personne']['id']);
     vrai($r['data'][0]['score'] >= 50, 'score');
@@ -233,31 +249,31 @@ test('Recette 2 : « Kossi », né vers 1968, bon grand-père → fiche proposé
 });
 
 test('Rapprochement : sous le seuil, aucune proposition', function () {
-    $j = connecter('+22961000012');
+    $j = connecter('+2290161000012');
     egal([], statut(api('POST', '/rapprochement/candidats', ['prenoms' => 'Kossi', 'annee_naissance' => 1900], $j), 200)['data']);
 });
 
 test('Rapprochement : prénom retrouvé via un nom secondaire (vodoun)', function () {
-    $j = connecter('+22961000012');
+    $j = connecter('+2290161000012');
     $r = statut(api('POST', '/rapprochement/candidats', ['prenoms' => 'Hounnon', 'annee_naissance' => 1970, 'branche_id' => 1], $j), 200);
     egal(9, $r['data'][0]['personne']['id']);
 });
 
 test('Rapprochement : fiche privée anonymisée pour un membre', function () {
-    $j = connecter('+22961000012');
+    $j = connecter('+2290161000012');
     $r = statut(api('POST', '/rapprochement/candidats', ['prenoms' => 'Zinsou', 'annee_naissance' => 1990, 'branche_id' => 1], $j), 200);
     egal([['anonyme' => true]], $r['data']);
 });
 
 test('Rapprochement : limité en débit (anti-aspiration)', function () {
-    $j = connecter('+22961000012');
+    $j = connecter('+2290161000012');
     [$max] = RATE_RECHERCHE;
-    Database::run('INSERT INTO rate_limits (cle, fenetre_debut, compteur) VALUES (?, ?, ?)', [hash('sha256', 'recherche|u' . Database::value("SELECT id FROM utilisateurs WHERE telephone_whatsapp = '+22961000012'")), time(), $max]);
+    Database::run('INSERT INTO rate_limits (cle, fenetre_debut, compteur) VALUES (?, ?, ?)', [hash('sha256', 'recherche|u' . Database::value("SELECT id FROM utilisateurs WHERE telephone_whatsapp = '+2290161000012'")), time(), $max]);
     statut(api('POST', '/rapprochement/candidats', ['prenoms' => 'Kossi'], $j), 429);
 });
 
 test('Recette 3 : un père à deux épouses les fait apparaître toutes les deux', function () {
-    $j = connecter('+22961000012');
+    $j = connecter('+2290161000012');
     $r = statut(api('GET', '/personnes/5/epouses', null, $j), 200);
     egal([6, 7], array_map(static fn(array $e): int => $e['personne']['id'], $r['data']));
     egal([1, 2], array_column($r['data'], 'rang_epouse'));
@@ -265,7 +281,7 @@ test('Recette 3 : un père à deux épouses les fait apparaître toutes les deux
 });
 
 test('Union : créée à l\'inscription, rang suivant attribué', function () use ($inscription) {
-    $j = connecter('+22961000013', 'n13@example.test');
+    $j = connecter('+2290161000013', 'n13@example.test');
     $r = statut(api('POST', '/inscriptions', $inscription(['identite' => identiteTest('Rang')]), $j), 201);
     $rang = (int) Database::value('SELECT rang_epouse FROM unions WHERE epoux_id = 9 AND epouse_id = ?', [$r['data']['mere_id']]);
     vrai($rang >= 1, 'union absente');
@@ -278,7 +294,7 @@ section('Lot 1 — tiers');
 $tiers = static fn(array $extra): array => $extra + ['client_uuid' => uuid(), 'branche_id' => 1, 'consentement' => true];
 
 test('Tiers : enfant mineur rattaché au déclarant, trace conservée', function () use ($tiers) {
-    $j = connecter('+22900000016');
+    $j = connecter('+2290100000016');
     $r = statut(api('POST', '/inscriptions/tiers', $tiers(['type' => 'enfant_mineur', 'identite' => identiteTest('Petit', ['annee_naissance' => 2020])]), $j), 201);
     egal(16, (int) Database::value("SELECT parent_id FROM liens_parente WHERE enfant_id = ? AND role_parent = 'pere'", [$r['data']['personne_id']]));
     egal(9, (int) Database::value('SELECT declarant_utilisateur_id FROM declarations_tiers WHERE personne_id = ?', [$r['data']['personne_id']]));
@@ -286,7 +302,7 @@ test('Tiers : enfant mineur rattaché au déclarant, trace conservée', function
 });
 
 test('Tiers : parent décédé marqué décédé et relié au déclarant', function () use ($tiers) {
-    $j = connecter('+22961000014', 'n14@example.test');
+    $j = connecter('+2290161000014', 'n14@example.test');
     $moi = statut(api('POST', '/inscriptions', ['client_uuid' => uuid(), 'identite' => identiteTest('Orphelin'), 'branche_id' => 3, 'consentement' => true], $j), 201)['data']['personne_id'];
     $r = statut(api('POST', '/inscriptions/tiers', $tiers(['type' => 'parent_decede', 'branche_id' => 3,
         'identite' => identiteTest('Défunt', ['annee_naissance' => 1950, 'rapprochement_vu' => true])]), $j), 201);
@@ -296,8 +312,8 @@ test('Tiers : parent décédé marqué décédé et relié au déclarant', funct
 
 test('Tiers : aîné réservé au relais de la branche, présence obligatoire', function () use ($tiers) {
     $corps = fn(array $e = []): array => $tiers($e + ['type' => 'aine', 'present_lors_saisie' => true, 'identite' => identiteTest('Aîné', ['annee_naissance' => 1940, 'rapprochement_vu' => true])]);
-    statut(api('POST', '/inscriptions/tiers', $corps(), connecter('+22900000016')), 403, 'membre');
-    $relais = connecter('+22900000011');
+    statut(api('POST', '/inscriptions/tiers', $corps(), connecter('+2290100000016')), 403, 'membre');
+    $relais = connecter('+2290100000011');
     statut(api('POST', '/inscriptions/tiers', $corps(['present_lors_saisie' => false]), $relais), 422, 'absent');
     statut(api('POST', '/inscriptions/tiers', $corps(['branche_id' => 2]), $relais), 403, 'autre branche');
     $r = statut(api('POST', '/inscriptions/tiers', $corps(), $relais), 201);
@@ -307,33 +323,33 @@ test('Tiers : aîné réservé au relais de la branche, présence obligatoire', 
 section('Lot 1 — fiches');
 
 test('Fiche : le membre corrige la sienne, pas celle d\'un autre', function () {
-    $j = connecter('+22900000017');
+    $j = connecter('+2290100000017');
     statut(api('PATCH', '/personnes/17', ['lieu_residence' => 'Bordeaux'], $j), 200);
     egal('Bordeaux', Database::value('SELECT lieu_residence FROM personnes WHERE id = 17'));
     statut(api('PATCH', '/personnes/16', ['lieu_residence' => 'Bordeaux'], $j), 403);
-    statut(api('PATCH', '/personnes/17', ['telephone_whatsapp' => '+22900000999', 'est_fondateur' => true], $j), 200);
-    egal('+22900000017', Database::value('SELECT telephone_whatsapp FROM personnes WHERE id = 17'), 'champ non autorisé ignoré');
+    statut(api('PATCH', '/personnes/17', ['telephone_whatsapp' => '+2290100000999', 'est_fondateur' => true], $j), 200);
+    egal('+2290100000017', Database::value('SELECT telephone_whatsapp FROM personnes WHERE id = 17'), 'champ non autorisé ignoré');
 });
 
 test('Fiche : retrait masque la fiche, révoque la session, garde le journal', function () {
-    $j = connecter('+22961000015', 'n15@example.test');
+    $j = connecter('+2290161000015', 'n15@example.test');
     $id = statut(api('POST', '/inscriptions', ['client_uuid' => uuid(), 'identite' => identiteTest('Retrait'), 'branche_id' => 1, 'consentement' => true], $j), 201)['data']['personne_id'];
     statut(api('POST', "/personnes/$id/retrait", [], $j), 422, 'sans confirmation');
     statut(api('POST', "/personnes/$id/retrait", ['confirmation' => true], $j), 200);
     statut(api('GET', '/me', null, $j), 401);
-    statut(api('GET', "/personnes/$id", null, connecter('+22900000016')), 404);
+    statut(api('GET', "/personnes/$id", null, connecter('+2290100000016')), 404);
     egal(null, Database::value('SELECT telephone_whatsapp FROM personnes WHERE id = ?', [$id]));
     vrai(Database::value('SELECT retire_le FROM consentements WHERE personne_id = ?', [$id]) !== null, 'consentement');
     vrai((int) Database::value("SELECT COUNT(*) FROM journal_actions WHERE action = 'personne.retrait' AND entite_id = ?", [$id]) === 1, 'journal');
 });
 
 test('Fiche : le référent de la branche voit le téléphone, celui d\'une autre non', function () {
-    egal('+22900000017', statut(api('GET', '/personnes/17', null, connecter('+22900000010')), 200)['data']['telephone_whatsapp']);
-    vrai(!isset(statut(api('GET', '/personnes/17', null, connecter('+22900000012')), 200)['data']['telephone_whatsapp']), 'autre branche');
+    egal('+2290100000017', statut(api('GET', '/personnes/17', null, connecter('+2290100000010')), 200)['data']['telephone_whatsapp']);
+    vrai(!isset(statut(api('GET', '/personnes/17', null, connecter('+2290100000012')), 200)['data']['telephone_whatsapp']), 'autre branche');
 });
 
 test('Fiche privée : référent journalisé, membre 404', function () {
-    statut(api('GET', '/personnes/19', null, connecter('+22900000016')), 404);
-    statut(api('GET', '/personnes/19', null, connecter('+22900000010')), 200);
+    statut(api('GET', '/personnes/19', null, connecter('+2290100000016')), 404);
+    statut(api('GET', '/personnes/19', null, connecter('+2290100000010')), 200);
     vrai((int) Database::value("SELECT COUNT(*) FROM journal_actions WHERE action = 'personne.consultation_privee' AND entite_id = 19") >= 1, 'non journalisé');
 });

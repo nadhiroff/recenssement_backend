@@ -39,7 +39,9 @@ final class Response
 
     public static function cors(?string $origine): void
     {
-        if ($origine !== null && in_array($origine, CORS_ALLOWED_ORIGINS, true)) {
+        // En développement, le serveur Expo répond aussi sur l'adresse locale du PC.
+        $dev = APP_ENV !== 'prod' && preg_match('#^http://[\w.\-]+:(8081|19006)$#', (string) $origine) === 1;
+        if ($origine !== null && ($dev || in_array($origine, CORS_ALLOWED_ORIGINS, true))) {
             header('Access-Control-Allow-Origin: ' . $origine);
             header('Vary: Origin');
             header('Access-Control-Allow-Headers: Authorization, Content-Type');

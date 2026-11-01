@@ -62,7 +62,10 @@ final class Validator
         return filter_var($d[$champ] ?? $defaut, FILTER_VALIDATE_BOOLEAN);
     }
 
-    /** Numéro international, ex. +22997000000. */
+    /**
+     * Numéro international. Bénin : 10 chiffres commençant par 01 depuis la renumérotation ;
+     * un ancien numéro à 8 chiffres reçoit le préfixe 01 pour qu'une personne n'ait qu'un identifiant.
+     */
     public static function telephone(array $d, string $champ, bool $requis = true): ?string
     {
         $v = $d[$champ] ?? null;
@@ -72,9 +75,13 @@ final class Validator
             }
             return null;
         }
-        $v = preg_replace('/[\s().\-]/', '', (string) $v);
-        if (!preg_match('/^\+[1-9]\d{7,14}$/', (string) $v)) {
-            self::echec($champ, 'Numéro invalide : utilisez le format international, par exemple +229…');
+        $v = (string) preg_replace('/[\s().\-]/', '', (string) $v);
+        $v = (string) preg_replace('/^\+229(\d{8})$/', '+22901$1', $v);
+        if (str_starts_with($v, '+229') && !preg_match('/^\+22901\d{8}$/', $v)) {
+            self::echec($champ, 'Numéro béninois invalide : +22901 suivi de 8 chiffres.');
+        }
+        if (!preg_match('/^\+[1-9]\d{7,14}$/', $v)) {
+            self::echec($champ, 'Numéro invalide : utilisez le format international, par exemple +22901…');
         }
         return $v;
     }

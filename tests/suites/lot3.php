@@ -17,12 +17,12 @@ $nomsFoyers = static fn(array $n): array => array_map(
 );
 
 test('Polygamie : enfants d\'un père regroupés par mère, dans l\'ordre du rang', function () use ($nomsFoyers) {
-    $n = statut(api('GET', '/arbre?racine=5&profondeur=1', null, connecter('+22900000020')), 200)['data'];
+    $n = statut(api('GET', '/arbre?racine=5&profondeur=1', null, connecter('+2290100000020')), 200)['data'];
     egal([['Afi ADJOVI', [9, 10]], ['Akouvi HOUNSOU', [11]]], $nomsFoyers($n));
 });
 
 test('Arbre membre : liens validés seulement, sans téléphone ni fiche privée', function () {
-    $j = connecter('+22900000020');
+    $j = connecter('+2290100000020');
     $r = statut(api('GET', '/arbre?racine=11&profondeur=2', null, $j), 200);
     vrai(!str_contains($r['brut'], 'Zinsou'), 'fiche privée exposée');
     vrai(!preg_match('/\+\d{8,}/', $r['brut']), 'téléphone exposé');
@@ -42,7 +42,7 @@ test('Arbre membre : liens validés seulement, sans téléphone ni fiche privée
 });
 
 test('Arbre référent : provisoires visibles et distingués, privés de sa branche inclus', function () {
-    $r = statut(api('GET', '/arbre?racine=11&profondeur=1', null, connecter('+22900000010')), 200);
+    $r = statut(api('GET', '/arbre?racine=11&profondeur=1', null, connecter('+2290100000010')), 200);
     $statuts = [];
     foreach ($r['data']['foyers'] as $f) {
         foreach ($f['enfants'] as $e) {
@@ -54,7 +54,7 @@ test('Arbre référent : provisoires visibles et distingués, privés de sa bran
 });
 
 test('Arbre : charge par niveaux (profondeur bornée, a_suite signalé)', function () {
-    $j = connecter('+22900000020');
+    $j = connecter('+2290100000020');
     $n = statut(api('GET', '/arbre?racine=2&profondeur=1', null, $j), 200)['data'];
     $enfant = $n['foyers'][0]['enfants'][0];
     egal(5, $enfant['personne']['id']);
@@ -66,8 +66,8 @@ test('Arbre : charge par niveaux (profondeur bornée, a_suite signalé)', functi
 
 test('Paramètre arbre_visible_membres : membre refusé, référent autorisé', function () {
     Database::run("UPDATE parametres SET valeur = '0' WHERE cle = 'arbre_visible_membres'");
-    statut(api('GET', '/arbre', null, connecter('+22900000020')), 403);
-    statut(api('GET', '/arbre', null, connecter('+22900000010')), 200);
+    statut(api('GET', '/arbre', null, connecter('+2290100000020')), 403);
+    statut(api('GET', '/arbre', null, connecter('+2290100000010')), 200);
     Database::run("UPDATE parametres SET valeur = '1' WHERE cle = 'arbre_visible_membres'");
 });
 
@@ -75,7 +75,7 @@ test('Paramètre generations_lignee_feminine : limite la descendance par les fil
     $e = (int) Database::insert('personnes', ['sexe' => 'M', 'branche_id' => 3]);
     Database::insert('liens_parente', ['parent_id' => 4, 'enfant_id' => $e, 'role_parent' => 'mere', 'statut' => 'valide']);
     Database::run("UPDATE parametres SET valeur = '0' WHERE cle = 'generations_lignee_feminine'");
-    $j = connecter('+22900000020');
+    $j = connecter('+2290100000020');
     egal([], statut(api('GET', '/arbre?racine=4&profondeur=1', null, $j), 200)['data']['foyers']);
     Database::run("UPDATE parametres SET valeur = '-1' WHERE cle = 'generations_lignee_feminine'");
     vrai(statut(api('GET', '/arbre?racine=4&profondeur=1', null, $j), 200)['data']['foyers'] !== [], 'sans limite');
@@ -84,16 +84,16 @@ test('Paramètre generations_lignee_feminine : limite la descendance par les fil
 section('Lot 3 — suivi');
 
 test('Stats : par branche et par statut, limitées à la branche du référent', function () {
-    $s = statut(api('GET', '/stats', null, connecter('+22900000010')), 200)['data'];
+    $s = statut(api('GET', '/stats', null, connecter('+2290100000010')), 200)['data'];
     egal([1], array_column($s, 'branche_id'));
     vrai($s[0]['liens']['valide'] > 0 && $s[0]['personnes'] > 0, 'compteurs');
     egal(3, count(statut(api('GET', '/stats', null, jetonDirect(1)), 200)['data']));
-    statut(api('GET', '/stats', null, connecter('+22900000020')), 403);
+    statut(api('GET', '/stats', null, connecter('+2290100000020')), 403);
 });
 
 test('Journal : référent limité à sa branche, admin complet, membre refusé', function () {
-    statut(api('GET', '/journal', null, connecter('+22900000020')), 403);
-    $r = statut(api('GET', '/journal?per_page=100', null, connecter('+22900000010')), 200)['data'];
+    statut(api('GET', '/journal', null, connecter('+2290100000020')), 403);
+    $r = statut(api('GET', '/journal?per_page=100', null, connecter('+2290100000010')), 200)['data'];
     vrai($r !== [] && array_unique(array_column($r, 'branche_id')) === [1], 'portée');
     vrai(count(statut(api('GET', '/journal?per_page=100', null, jetonDirect(1)), 200)['data']) >= count($r), 'admin');
 });
@@ -156,14 +156,14 @@ test('CSV : BOM UTF-8, point-virgule, téléphone conservé, formule neutralisé
     $c = CsvExporter::fiches();
     vrai(str_starts_with($c, "\xEF\xBB\xBF"), 'BOM');
     vrai(str_contains(strtok($c, "\n"), 'id;nom;'), 'entête');
-    vrai(str_contains($c, '+22900000009'), 'téléphone');
+    vrai(str_contains($c, '+2290100000009'), 'téléphone');
     vrai(str_contains(CsvExporter::tableau(['a'], [['=SOMME(A1)']]), "'=SOMME"), 'formule');
-    vrai(str_contains(CsvExporter::tableau(['a'], [['+22900000009']]), "\n+22900000009"), 'numéro intact');
+    vrai(str_contains(CsvExporter::tableau(['a'], [['+2290100000009']]), "\n+2290100000009"), 'numéro intact');
 });
 
 test('Exports réservés à l\'admin et journalisés', function () {
     foreach (['/export/gedcom', '/export/csv'] as $r) {
-        statut(api('GET', $r, null, connecter('+22900000010')), 403);
+        statut(api('GET', $r, null, connecter('+2290100000010')), 403);
     }
     vrai(str_contains(statut(api('GET', '/export/gedcom', null, jetonDirect(1)), 200)['brut'], '0 HEAD'), 'gedcom');
     statut(api('GET', '/export/csv', null, jetonDirect(1)), 200);
@@ -175,8 +175,8 @@ section('Lot 3 — confidentialité');
 test('Recette 6 : balayage de toutes les routes, un membre n\'obtient ni téléphone ni fiche privée', function () {
     $routeur = new Router();
     (require BASE_PATH . '/src/routes.php')($routeur);
-    $j = connecter('+22900000020');
-    $moi = '+22900000020';
+    $j = connecter('+2290100000020');
+    $moi = '+2290100000020';
     $maxId = (int) Database::value('SELECT MAX(id) FROM personnes');
     $liens = (int) Database::value('SELECT MAX(id) FROM liens_parente');
     $prives = array_column(Database::all('SELECT DISTINCT n.valeur FROM noms_personne n JOIN personnes p ON p.id = n.personne_id WHERE p.est_privee = 1 AND n.type <> \'nom_famille\''), 'valeur');
@@ -237,7 +237,7 @@ test('Recette 6 : balayage de toutes les routes, un membre n\'obtient ni télép
 test('Recette 6 : routes d\'administration et de référent refusées au membre', function () {
     $routeur = new Router();
     (require BASE_PATH . '/src/routes.php')($routeur);
-    $j = connecter('+22900000020');
+    $j = connecter('+2290100000020');
     $n = 0;
     foreach ($routeur->routes() as [$methode, $motif]) {
         if (preg_match('#^/(admin|export|taches|fusions|journal|stats|doublons|referent)#', $motif)) {
@@ -250,7 +250,7 @@ test('Recette 6 : routes d\'administration et de référent refusées au membre'
 });
 
 test('Un référent n\'accède pas aux routes d\'administration', function () {
-    $j = connecter('+22900000010');
+    $j = connecter('+2290100000010');
     foreach ([['GET', '/admin/utilisateurs'], ['POST', '/admin/branches'], ['PATCH', '/admin/parametres'], ['POST', '/taches/backup/lancer'], ['POST', '/fusions/1/annuler']] as [$m, $r]) {
         statut(api($m, $r, [], $j), 403, "$m $r");
     }

@@ -19,13 +19,13 @@ test('Transitions autorisées et interdites', function () {
 });
 
 test('Un lien déclaré ne peut pas être validé directement (409)', function () {
-    statut(api('POST', '/liens/15/valider', [], connecter('+22900000012')), 409);
+    statut(api('POST', '/liens/15/valider', [], connecter('+2290100000012')), 409);
     egal('declare', Database::value('SELECT statut FROM liens_parente WHERE id = 15'));
 });
 
 test('Rejet : motif obligatoire, puis lien terminal et nouveau lien possible', function () {
-    $j = connecter('+22900000013');
-    statut(api('POST', '/liens/18/rejeter', [], connecter('+22900000010')), 403, 'autre branche');
+    $j = connecter('+2290100000013');
+    statut(api('POST', '/liens/18/rejeter', [], connecter('+2290100000010')), 403, 'autre branche');
     statut(api('POST', '/liens/18/rejeter', [], $j), 422);
     statut(api('POST', '/liens/18/rejeter', ['motif' => 'Erreur de personne'], $j), 200);
     statut(api('POST', '/liens/18/examen', [], $j), 409);
@@ -38,10 +38,10 @@ section('Lot 2 — conflit d\'intérêts');
 
 test('Recette 7 : un référent ne valide pas un lien qui le concerne, un autre le peut', function () {
     // Lien 16 : Kossi (référent) père d'Edem
-    egal('conflit_interet', statut(api('POST', '/liens/16/valider', [], connecter('+22900000009')), 403)['error']['code']);
+    egal('conflit_interet', statut(api('POST', '/liens/16/valider', [], connecter('+2290100000009')), 403)['error']['code']);
     egal('confirme', Database::value('SELECT statut FROM liens_parente WHERE id = 16'));
     egal(1, (int) Database::value("SELECT COUNT(*) FROM notifications WHERE utilisateur_id = 3 AND type = 'orientation' AND lien_id = 16"), 'orienté');
-    statut(api('POST', '/liens/16/valider', [], connecter('+22900000010')), 200);
+    statut(api('POST', '/liens/16/valider', [], connecter('+2290100000010')), 200);
     egal('valide', Database::value('SELECT statut FROM liens_parente WHERE id = 16'));
 });
 
@@ -49,16 +49,16 @@ test('Recette 7 : même règle pour un lien qui concerne ses enfants', function 
     // Enfant de Dela (17), elle-même fille de Kossi : un lien sur Dela concerne un enfant de Kossi
     $id = Database::insert('personnes', ['sexe' => 'F', 'branche_id' => 1]);
     $lien = Database::insert('liens_parente', ['parent_id' => 17, 'enfant_id' => $id, 'role_parent' => 'mere', 'statut' => 'confirme', 'declarant_utilisateur_id' => 10]);
-    statut(api('POST', "/liens/$lien/valider", [], connecter('+22900000009')), 403);
-    statut(api('POST', "/liens/$lien/examen", [], connecter('+22900000009')), 403, 'examen aussi');
-    statut(api('POST', "/liens/$lien/rejeter", ['motif' => 'x'], connecter('+22900000009')), 403, 'rejet aussi');
-    statut(api('POST', "/liens/$lien/valider", [], connecter('+22900000010')), 200);
+    statut(api('POST', "/liens/$lien/valider", [], connecter('+2290100000009')), 403);
+    statut(api('POST', "/liens/$lien/examen", [], connecter('+2290100000009')), 403, 'examen aussi');
+    statut(api('POST', "/liens/$lien/rejeter", ['motif' => 'x'], connecter('+2290100000009')), 403, 'rejet aussi');
+    statut(api('POST', "/liens/$lien/valider", [], connecter('+2290100000010')), 200);
 });
 
 test('Conflit : file du référent signale les liens à traiter par un autre', function () {
     $lien = (int) Database::insert('personnes', ['sexe' => 'M', 'branche_id' => 1]);
     $l = (int) Database::insert('liens_parente', ['parent_id' => 9, 'enfant_id' => $lien, 'role_parent' => 'pere', 'statut' => 'confirme', 'declarant_utilisateur_id' => 2]);
-    $file = statut(api('GET', '/referent/file', null, connecter('+22900000009')), 200)['data'];
+    $file = statut(api('GET', '/referent/file', null, connecter('+2290100000009')), 200)['data'];
     $ligne = array_values(array_filter($file, static fn(array $x): bool => $x['id'] === $l))[0];
     egal(true, $ligne['conflit']);
 });
@@ -72,11 +72,11 @@ test('L\'admin est soumis à la même règle', function () {
 });
 
 test('Référent : droits limités à sa branche ; membre interdit', function () {
-    statut(api('GET', '/referent/file', null, connecter('+22900000016')), 403);
-    statut(api('GET', '/referent/file?branche=2', null, connecter('+22900000010')), 403);
-    statut(api('POST', '/liens/22/valider', [], connecter('+22900000012')), 403);
-    statut(api('POST', '/liens/22/valider', [], connecter('+22900000016')), 403);
-    egal('1', (string) count(array_unique(array_column(statut(api('GET', '/referent/file?branche=1', null, connecter('+22900000010')), 200)['data'], 'branche_id'))));
+    statut(api('GET', '/referent/file', null, connecter('+2290100000016')), 403);
+    statut(api('GET', '/referent/file?branche=2', null, connecter('+2290100000010')), 403);
+    statut(api('POST', '/liens/22/valider', [], connecter('+2290100000012')), 403);
+    statut(api('POST', '/liens/22/valider', [], connecter('+2290100000016')), 403);
+    egal('1', (string) count(array_unique(array_column(statut(api('GET', '/referent/file?branche=1', null, connecter('+2290100000010')), 200)['data'], 'branche_id'))));
 });
 
 test('Validation du père et de la mère : l\'union passe en validée', function () {
@@ -104,8 +104,8 @@ $lienDeclare = static function (int $declarantUser = 12): int {
 
 test('Invitation : URL wa.me à jeton unique, jeton haché en base', function () use ($lienDeclare) {
     $l = $lienDeclare();
-    $r = statut(api('POST', "/liens/$l/invitations", ['telephone' => '+22966000001'], connecter('+22900000020')), 201);
-    vrai(str_starts_with($r['data']['whatsapp_url'], 'https://wa.me/22966000001?text='), 'wa.me');
+    $r = statut(api('POST', "/liens/$l/invitations", ['telephone' => '+2290166000001'], connecter('+2290100000020')), 201);
+    vrai(str_starts_with($r['data']['whatsapp_url'], 'https://wa.me/2290166000001?text='), 'wa.me');
     vrai(str_contains(rawurldecode($r['data']['whatsapp_url']), 'est bien le père de'), 'message');
     $token = substr($r['data']['url'], strpos($r['data']['url'], '=') + 1);
     egal(1, (int) Database::value('SELECT COUNT(*) FROM invitations_confirmation WHERE token_hash = ?', [hash('sha256', $token)]));
@@ -113,11 +113,11 @@ test('Invitation : URL wa.me à jeton unique, jeton haché en base', function ()
 });
 
 test('Invitation : réservée au déclarant', function () use ($lienDeclare) {
-    statut(api('POST', '/liens/' . $lienDeclare() . '/invitations', [], connecter('+22900000017')), 404);
+    statut(api('POST', '/liens/' . $lienDeclare() . '/invitations', [], connecter('+2290100000017')), 404);
 });
 
 $inviter = static function (int $lien): string {
-    $r = statut(api('POST', "/liens/$lien/invitations", [], connecter('+22900000020')), 201);
+    $r = statut(api('POST', "/liens/$lien/invitations", [], connecter('+2290100000020')), 201);
     return substr($r['data']['url'], strpos($r['data']['url'], '=') + 1);
 };
 
@@ -142,7 +142,7 @@ test('Confirmation : Non envoie en examen, Je ne sais pas ne change rien', funct
 
 test('Confirmation : le déclarant ne confirme pas son propre lien', function () use ($lienDeclare, $inviter) {
     $l = $lienDeclare();
-    statut(api('POST', '/confirmations/' . $inviter($l), ['reponse' => 'oui'], connecter('+22900000020')), 403);
+    statut(api('POST', '/confirmations/' . $inviter($l), ['reponse' => 'oui'], connecter('+2290100000020')), 403);
     egal('declare', Database::value('SELECT statut FROM liens_parente WHERE id = ?', [$l]));
 });
 
@@ -167,12 +167,12 @@ test('Page web de confirmation : question affichée, réponse enregistrée, éch
 section('Lot 2 — situations délicates');
 
 test('Passer en privé : motif, fiche masquée aux membres, visible du référent', function () {
-    $e = (int) Database::insert('personnes', ['sexe' => 'F', 'branche_id' => 2, 'telephone_whatsapp' => '+22900000777']);
+    $e = (int) Database::insert('personnes', ['sexe' => 'F', 'branche_id' => 2, 'telephone_whatsapp' => '+2290100000777']);
     Database::insert('noms_personne', ['personne_id' => $e, 'type' => 'naissance', 'valeur' => 'Délicate', 'valeur_normalisee' => 'DELICATE', 'principal' => 1]);
     Database::run('INSERT INTO noms_tokens (nom_id, token) SELECT id, valeur_normalisee FROM noms_personne WHERE personne_id = ?', [$e]);
     $l = (int) Database::insert('liens_parente', ['parent_id' => 12, 'enfant_id' => $e, 'role_parent' => 'pere', 'statut' => 'confirme', 'declarant_utilisateur_id' => 11]);
-    $m = connecter('+22900000018');
-    $ref = connecter('+22900000013');
+    $m = connecter('+2290100000018');
+    $ref = connecter('+2290100000013');
     egal(1, count(api('GET', '/personnes/recherche?q=delicate', null, $m)['data']));
     statut(api('POST', "/liens/$l/prive", [], $ref), 422, 'motif');
     statut(api('POST', "/liens/$l/prive", ['motif' => 'Filiation contestée'], $ref), 200);
@@ -188,8 +188,8 @@ test('Passer en privé : motif, fiche masquée aux membres, visible du référen
 
 test('Rattachement à une branche : référent de la branche d\'origine, journalisé', function () {
     $p = (int) Database::insert('personnes', ['sexe' => 'M', 'branche_id' => 1]);
-    statut(api('POST', "/personnes/$p/branche", ['branche_id' => 2], connecter('+22900000012')), 403);
-    statut(api('POST', "/personnes/$p/branche", ['branche_id' => 2], connecter('+22900000010')), 200);
+    statut(api('POST', "/personnes/$p/branche", ['branche_id' => 2], connecter('+2290100000012')), 403);
+    statut(api('POST', "/personnes/$p/branche", ['branche_id' => 2], connecter('+2290100000010')), 200);
     egal(2, (int) Database::value('SELECT branche_id FROM personnes WHERE id = ?', [$p]));
     egal(1, (int) Database::value("SELECT COUNT(*) FROM journal_actions WHERE action = 'personne.rattachement' AND entite_id = ?", [$p]));
 });
@@ -246,7 +246,7 @@ test('Recette 4 : ZOCLI / ZOKLI, même prénom, même père, années voisines si
     $id = $idDoublon();
     vrai($id > 0, 'paire 14/15 absente');
     vrai((int) Database::value('SELECT score FROM doublons_suspects WHERE id = ?', [$id]) >= 70, 'score');
-    $liste = statut(api('GET', '/doublons', null, connecter('+22900000013')), 200)['data'];
+    $liste = statut(api('GET', '/doublons', null, connecter('+2290100000013')), 200)['data'];
     vrai(in_array($id, array_column($liste, 'id'), true), 'absente de la liste');
     egal(0, TacheService::lancer('detect_doublons')['nouvelles'], 'pas recréée');
 });
@@ -264,9 +264,9 @@ test('Doublons : poids du paramètre « prénom requis »', function () {
 
 test('Doublons : réservés aux référents, à leur branche, sans conflit', function () use ($idDoublon) {
     $id = $idDoublon();
-    statut(api('GET', '/doublons', null, connecter('+22900000016')), 403);
-    statut(api('POST', "/doublons/$id/distinct", [], connecter('+22900000016')), 403);
-    statut(api('POST', "/doublons/$id/distinct", [], connecter('+22900000010')), 403, 'autre branche');
+    statut(api('GET', '/doublons', null, connecter('+2290100000016')), 403);
+    statut(api('POST', "/doublons/$id/distinct", [], connecter('+2290100000016')), 403);
+    statut(api('POST', "/doublons/$id/distinct", [], connecter('+2290100000010')), 403, 'autre branche');
 });
 
 test('Recette 5 : fusion puis annulation restituent exactement tout (ligne à ligne)', function () use ($photo, $idDoublon) {
@@ -275,7 +275,7 @@ test('Recette 5 : fusion puis annulation restituent exactement tout (ligne à li
     $autre = (int) Database::insert('personnes', ['sexe' => 'M', 'branche_id' => 2]);
     Database::insert('liens_parente', ['parent_id' => 15, 'enfant_id' => $autre, 'role_parent' => 'pere', 'statut' => 'valide']);
     $avant = $photo();
-    $f = statut(api('POST', "/doublons/$id/fusionner", ['personne_conservee_id' => 14], connecter('+22900000013')), 200)['data']['fusion_id'];
+    $f = statut(api('POST', "/doublons/$id/fusionner", ['personne_conservee_id' => 14], connecter('+2290100000013')), 200)['data']['fusion_id'];
 
     egal(14, (int) Database::value('SELECT fusionnee_dans_id FROM personnes WHERE id = 15'));
     egal(14, (int) Database::value('SELECT parent_id FROM liens_parente WHERE enfant_id = ?', [$autre]), 'lien transféré');
@@ -283,8 +283,8 @@ test('Recette 5 : fusion puis annulation restituent exactement tout (ligne à li
     egal(0, (int) Database::value('SELECT COUNT(*) FROM noms_personne WHERE personne_id = 15'), 'noms transférés');
     egal(1, (int) Database::value("SELECT COUNT(*) FROM liens_parente WHERE enfant_id = 14 AND role_parent = 'pere' AND statut <> 'rejete'"));
     egal((int) Database::value('SELECT COUNT(*) FROM personnes'), count($avant['personnes']), 'rien de supprimé');
-    egal(14, statut(api('GET', '/personnes/15', null, connecter('+22900000018')), 200)['data']['id'], 'redirection');
-    statut(api('POST', "/fusions/$f/annuler", [], connecter('+22900000013')), 403, 'réservé à l\'admin');
+    egal(14, statut(api('GET', '/personnes/15', null, connecter('+2290100000018')), 200)['data']['id'], 'redirection');
+    statut(api('POST', "/fusions/$f/annuler", [], connecter('+2290100000013')), 403, 'réservé à l\'admin');
 
     statut(api('POST', "/fusions/$f/annuler", [], jetonDirect(1)), 200);
     $apres = $photo();
@@ -302,7 +302,7 @@ test('Fusion : parents différents refusés, rien n\'est modifié', function () 
     Database::insert('liens_parente', ['parent_id' => 8, 'enfant_id' => $b, 'role_parent' => 'pere']);
     $d = (int) Database::insert('doublons_suspects', ['personne_a_id' => $a, 'personne_b_id' => $b, 'score' => 80]);
     $avant = $photo();
-    statut(api('POST', "/doublons/$d/fusionner", ['personne_conservee_id' => $a], connecter('+22900000013')), 409);
+    statut(api('POST', "/doublons/$d/fusionner", ['personne_conservee_id' => $a], connecter('+2290100000013')), 409);
     egal($avant['liens_parente'], $photo()['liens_parente']);
 });
 
@@ -321,7 +321,7 @@ test('Fusion : plus récente d\'abord à l\'annulation', function () {
 
 test('Une paire déclarée distincte n\'est plus jamais proposée', function () use ($idDoublon) {
     $id = $idDoublon();
-    statut(api('POST', "/doublons/$id/distinct", [], connecter('+22900000013')), 200);
+    statut(api('POST', "/doublons/$id/distinct", [], connecter('+2290100000013')), 200);
     egal(1, (int) Database::value('SELECT COUNT(*) FROM paires_distinctes WHERE personne_a_id = 14 AND personne_b_id = 15'));
     Database::run('UPDATE fusions SET doublon_id = NULL WHERE doublon_id = ?', [$id]);
     Database::run('DELETE FROM doublons_suspects WHERE id = ?', [$id]);

@@ -8,6 +8,8 @@ use App\Core\Router;
 
 require dirname(__DIR__) . '/src/bootstrap.php';
 
+// Une API répond en JSON : un avertissement PHP affiché casserait la réponse.
+ini_set('display_errors', '0');
 if (extension_loaded('zlib') && !headers_sent()) {
     ini_set('zlib.output_compression', '1');
 }

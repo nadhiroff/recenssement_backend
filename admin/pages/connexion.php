@@ -89,7 +89,7 @@ if ($etape === 'code') { ?>
 <p><button>Continuer</button></p></form></div>
 <div class="carte"><h2>Référent</h2>
 <form method="post" action="<?= e(url('connexion')) ?>"><?= champCsrf() ?><input type="hidden" name="mode" value="referent">
-<label for="tel">Numéro WhatsApp</label><input id="tel" name="telephone" value="+229" autocomplete="tel" required>
+<label for="tel">Numéro WhatsApp</label><input id="tel" name="telephone" value="+22901" autocomplete="tel" required>
 <p><button class="contour">Recevoir mon code</button></p></form></div>
 <?php }
 echo '</div>';

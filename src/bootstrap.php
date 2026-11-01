@@ -8,6 +8,8 @@ if (!is_file($configFile)) {
 }
 require_once $configFile;
 date_default_timezone_set('UTC');
+// Apache et le cron partagent storage/ par le groupe www-data.
+umask(0002);
 define('BASE_PATH', dirname(__DIR__));
 
 ini_set('display_errors', APP_ENV === 'prod' ? '0' : '1');
