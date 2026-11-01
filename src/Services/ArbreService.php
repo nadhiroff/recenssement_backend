@@ -171,11 +171,14 @@ final class ArbreService
         );
         $fiches = PersonneRepository::parIds(array_column([...$liensParents, ...$liensEnfants, ...$unions], 'autre'));
         $referent = PermissionService::estReferent($u);
-        $vue = static function (array $lignes) use ($fiches, $u, $referent): array {
+        // Sur sa propre fiche, chacun suit ses liens en cours ; pour les autres, la règle de l'arbre s'applique.
+        $sienne = (int) $u['personne_id'] === $id;
+        $vue = static function (array $lignes) use ($fiches, $u, $referent, $sienne): array {
             $res = [];
             foreach ($lignes as $l) {
                 $f = $fiches[(int) $l['autre']] ?? null;
-                if ($f === null || !self::visible($l, $f, $u)) {
+                $enCours = $sienne && $f !== null && $l['statut'] !== 'prive' && !PersonneSerializer::estMasquee($f);
+                if ($f === null || (!$enCours && !self::visible($l, $f, $u))) {
                     continue;
                 }
                 $s = PersonneSerializer::selonRole($f, $u) ?? PersonneSerializer::pourReferent($f);
@@ -183,7 +186,7 @@ final class ArbreService
                     'personne' => $s,
                     'role' => $l['role_parent'] ?? null,
                     'rang' => isset($l['rang_epouse']) ? (int) $l['rang_epouse'] : null,
-                    'statut' => $referent ? $l['statut'] : null,
+                    'statut' => $referent || $sienne ? $l['statut'] : null,
                 ];
             }
             return $res;

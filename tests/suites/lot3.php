@@ -102,6 +102,16 @@ test('Fiche famille : mêmes règles que l\'arbre, selon le rôle', function () 
     egal([6, 7], array_map(static fn(array $p): int => $p['personne']['id'], statut(api('GET', '/personnes/5/famille', null, connecter('+2290100000020')), 200)['data']['conjoints']));
 });
 
+test('Fiche famille : ses propres liens en cours visibles, pas ceux des autres', function () {
+    $j = connecter('+2290100000021', 'kodjo.test@example.test');
+    $u = (int) Database::value("SELECT id FROM utilisateurs WHERE telephone_whatsapp = '+2290100000021'");
+    Database::run('UPDATE utilisateurs SET personne_id = 21 WHERE id = ?', [$u]);
+    $moi = statut(api('GET', '/personnes/21/famille', null, $j), 200)['data']['parents'];
+    egal('confirme', $moi[0]['statut'], 'lien confirmé sur sa fiche');
+    egal([], statut(api('GET', '/personnes/21/famille', null, connecter('+2290100000020')), 200)['data']['parents'], 'autre membre');
+    Database::run('UPDATE utilisateurs SET personne_id = NULL WHERE id = ?', [$u]);
+});
+
 section('Lot 3 — suivi');
 
 test('Stats : par branche et par statut, limitées à la branche du référent', function () {
