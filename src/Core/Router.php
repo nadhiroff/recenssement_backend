@@ -28,6 +28,12 @@ final class Router
         $this->routes[] = ['DELETE', $p, $h, $auth];
     }
 
+    /** @return array<int, array{string, string, callable, bool}> */
+    public function routes(): array
+    {
+        return $this->routes;
+    }
+
     public function dispatch(Request $req): void
     {
         $methodeAutreTrouvee = false;

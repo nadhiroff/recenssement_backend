@@ -5,6 +5,7 @@ use App\Controllers\AuthController as A;
 use App\Controllers\InscriptionController as I;
 use App\Controllers\LienController as L;
 use App\Controllers\PersonneController as P;
+use App\Controllers\SuiviController as S;
 use App\Core\Router;
 
 return static function (Router $r): void {
@@ -44,4 +45,24 @@ return static function (Router $r): void {
 
     $r->get('/notifications', [L::class, 'notifications']);
     $r->post('/notifications/{id}/lu', [L::class, 'notificationLue']);
+
+    $r->get('/arbre', [S::class, 'arbre']);
+    $r->get('/stats', [S::class, 'stats']);
+    $r->get('/journal', [S::class, 'journal']);
+    $r->get('/export/gedcom', [S::class, 'gedcom']);
+    $r->get('/export/csv', [S::class, 'csv']);
+    $r->get('/taches', [S::class, 'taches']);
+    $r->post('/taches/{nom}/lancer', [S::class, 'lancerTache']);
+
+    $r->post('/admin/branches', [S::class, 'creerBranche']);
+    $r->patch('/admin/branches/{id}', [S::class, 'modifierBranche']);
+    $r->get('/admin/utilisateurs', [S::class, 'utilisateurs']);
+    $r->post('/admin/utilisateurs/{id}/role', [S::class, 'definirRole']);
+    $r->get('/admin/variantes', [S::class, 'variantes']);
+    $r->post('/admin/variantes', [S::class, 'creerVariante']);
+    $r->post('/admin/variantes/recalculer', [S::class, 'recalculer']);
+    $r->patch('/admin/variantes/{id}', [S::class, 'modifierVariante']);
+    $r->delete('/admin/variantes/{id}', [S::class, 'supprimerVariante']);
+    $r->get('/admin/parametres', [S::class, 'parametres']);
+    $r->patch('/admin/parametres', [S::class, 'modifierParametres']);
 };

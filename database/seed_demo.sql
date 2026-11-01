@@ -78,7 +78,7 @@ INSERT INTO noms_tokens (nom_id, token) SELECT id, valeur_normalisee FROM noms_p
 
 INSERT INTO utilisateurs (id, personne_id, telephone_whatsapp, email, role_global, mot_de_passe_hash) VALUES
  -- Mot de passe de démonstration : DemoAdmin2026!
- (1, 25, NULL, 'admin.demo@example.test', 'admin', 'y$ZvbBZ3ArLxmCWaymyXrIYOXzYGPtZvjdc0su932H39kpDYRokpXy.'),
+ (1, 25, NULL, 'admin.demo@example.test', 'admin', '$2y$12$lUjzxYLvDEGfF/q.o3QINOIcaFnb3I8FRK2vT/iu0cXRjJgbaqRnK'),
  (2, 9,  '+22900000009', 'kossi.demo@example.test', 'referent', NULL),
  (3, 10, '+22900000010', 'enyonam.demo@example.test', 'referent', NULL),
  (4, 12, '+22900000012', 'yao.demo@example.test', 'referent', NULL),

@@ -201,12 +201,14 @@ final class LienController
 
     public static function fusionnerDoublon(Request $r): void
     {
+        PermissionService::exigerReferent($r->user);
         $conservee = Validator::entier($r->body, 'personne_conservee_id', true, 1);
         Response::ok(['fusion_id' => DoublonService::fusionner($r->user, (int) $r->params['id'], $conservee)]);
     }
 
     public static function doublonDistinct(Request $r): void
     {
+        PermissionService::exigerReferent($r->user);
         DoublonService::distinct($r->user, (int) $r->params['id']);
         Response::ok(['statut' => 'distinct']);
     }

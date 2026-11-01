@@ -1,0 +1,4 @@
+Options -Indexes
+<FilesMatch "^(pages|lib)">
+    Require all denied
+</FilesMatch>
