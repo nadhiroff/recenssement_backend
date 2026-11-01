@@ -59,5 +59,6 @@ button.oui{background:var(--p);color:#fff}
 <button name="reponse" value="non">Non</button>
 <button name="reponse" value="ne_sait_pas">Je ne sais pas</button>
 </form>
+<p><a href="recensementzocli://confirmation/<?= $e(rawurlencode($token)) ?>">Ouvrir dans l'application</a></p>
 <?php endif; ?>
 </main></body></html>

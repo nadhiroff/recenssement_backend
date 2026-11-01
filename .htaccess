@@ -1,5 +1,6 @@
 # Racine du backend : pas de listing, seuls api/, admin/ et confirmation.php sont utiles.
 Options -Indexes
+RedirectMatch 404 /\.git
 <FilesMatch "\.(sql|md|log|gz|ged|csv)$">
     Require all denied
 </FilesMatch>

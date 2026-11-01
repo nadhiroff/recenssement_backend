@@ -1,0 +1,151 @@
+# Rapport de tests
+
+Dernière exécution : 1er novembre 2026, sur PHP 8.5 et MySQL 8.4.
+
+| Suite | Résultat |
+|---|---|
+| Backend et admin web (`php tests/run.php`) | 95 réussis, 0 échoué |
+| Frontend Jest (`npx jest`) | 17 réussis, 0 échoué |
+| TypeScript, ESLint, `expo-doctor` | sans erreur (20/20 pour expo-doctor) |
+| `expo export` Android et web | sans erreur |
+| Gramps 6.0.6 (Docker) | « GEDCOM import report: No errors detected » |
+| `.htaccess` dans Apache avec AllowOverride All, PHP 8.1 (Docker) | fichiers sensibles en 403, `.git` en 404, réécriture OK, syntaxe OK |
+| Chrome mobile 360×640, 3G et CPU divisé par 4 | parcours complet, coupure réseau, réouverture hors ligne et rejeu OK |
+
+## Scénarios de recette
+
+| Scénario | Résultat | Preuve |
+|---|---|---|
+| 1. Inscription et rejeu sans doublon | Réussi | tests API, envois simultanés, Chrome avec coupure réseau |
+| 2. Kossi, 1968, bon grand-père | Réussi | par identifiant du grand-père et par son nom |
+| 3. Deux épouses proposées | Réussi | API, Jest, Chrome |
+| 4. Doublon ZOCLI/ZOKLI | Réussi | tâche hebdomadaire |
+| 5. Fusion puis annulation | Réussi | comparaison ligne à ligne de 9 tables, horodatages compris |
+| 6. Ni téléphone ni fiche privée | Réussi | balayage automatique de toutes les routes GET : 284 appels |
+| 7. Référent et conflit d'intérêts | Réussi | 403, orientation, puis validation par l'autre référent |
+| 8. GEDCOM dans Gramps | Réussi | import réel, liens validés seulement |
+| 9. Journal, paire distincte, relance, poids | Réussis | tests dédiés |
+
+## Mesures Chrome (3G simulée, CPU divisé par 4)
+
+| Mesure | Résultat | Objectif |
+|---|---|---|
+| Première visite PWA (Apache, gzip) | 10,2 s | < 2 s : **non atteint** |
+| Visites suivantes (service worker) | 1,4 s | < 2 s : atteint |
+| Volume d'une première visite | environ 650 Ko compressés | |
+
+## Non testé
+
+- Téléphone Android réel et émulateur (aucun appareil disponible sur le poste). La recette du cahier des charges exige ce test.
+- Durée d'une inscription par une vraie personne, à chronométrer : l'objectif est de moins de 5 minutes.
+- Envoi réel d'un email : seule l'authentification SMTP a été vérifiée.
+- Hébergement mutualisé réel.
+
+## Corrections apportées grâce aux tests
+
+- Le brouillon ne se sauvegardait pas (`form.watch` remplacé par `form.subscribe`).
+- Un brouillon incomplet était jeté à la relecture, avec perte du consentement.
+- Fausse détection « Hors ligne » due à la sonde NetInfo vers Google, supprimée.
+- Le service worker ne couvrait pas la première visite : pré-cache complet ajouté.
+- Redirection vers le consentement après un envoi, à cause d'un profil en cache périmé.
+- Hash du compte de démonstration corrompu par `preg_replace`.
+- Membres recevant 404 ou 422 au lieu de 403 sur les doublons.
+- Droits partagés sur `storage/` entre Apache et les tâches ; gris `muted` foncé à `#646D67` pour atteindre le contraste AA.
+
+## Liste des tests backend
+
+- ✓ Normalisation : accents, majuscules, ponctuation
+- ✓ Normalisation : ZOKLI et ZOCKLI ramenés à ZOCLI
+- ✓ Normalisation : variante ajoutée sans redéploiement, recalcul
+- ✓ Score : chaque critère vaut son poids
+- ✓ Score : poids modifiés en base, sans redéploiement
+- ✓ Téléphone : format béninois +22901, ancien numéro converti, autres pays acceptés
+- ✓ OTP : code haché, connexion, /me
+- ✓ OTP : premier accès sans email refusé
+- ✓ OTP : 5 tentatives maximum, code réutilisé refusé, expiration
+- ✓ OTP : limitation de débit par numéro
+- ✓ OTP : un compte existant ne peut pas être détourné vers un autre email
+- ✓ Numéro de téléphone absent des journaux techniques
+- ✓ Déconnexion : jeton révoqué ; sans jeton 401
+- ✓ Routage de repli ?route= quand la réécriture est absente
+- ✓ Recette 1 : inscription complète, rejeu même client_uuid sans doublon
+- ✓ Envois simultanés du même client_uuid : une seule fiche
+- ✓ Inscription : sans consentement refusée, rien de créé
+- ✓ Inscription : fiche ressemblante non vue → 409 avec candidats ; annulation complète
+- ✓ Inscription : deux noms supplémentaires servent à la recherche
+- ✓ Inscription : année approximative et date absente acceptées
+- ✓ Lien : un seul père actif par enfant (contrainte en base)
+- ✓ Recette 2 : « Kossi », né vers 1968, bon grand-père → fiche proposée
+- ✓ Rapprochement : sous le seuil, aucune proposition
+- ✓ Rapprochement : prénom retrouvé via un nom secondaire (vodoun)
+- ✓ Rapprochement : fiche privée anonymisée pour un membre
+- ✓ Rapprochement : limité en débit (anti-aspiration)
+- ✓ Recette 3 : un père à deux épouses les fait apparaître toutes les deux
+- ✓ Union : créée à l'inscription, rang suivant attribué
+- ✓ Tiers : enfant mineur rattaché au déclarant, trace conservée
+- ✓ Tiers : parent décédé marqué décédé et relié au déclarant
+- ✓ Tiers : aîné réservé au relais de la branche, présence obligatoire
+- ✓ Fiche : le membre corrige la sienne, pas celle d'un autre
+- ✓ Fiche : retrait masque la fiche, révoque la session, garde le journal
+- ✓ Fiche : le référent de la branche voit le téléphone, celui d'une autre non
+- ✓ Fiche privée : référent journalisé, membre 404
+- ✓ Transitions autorisées et interdites
+- ✓ Un lien déclaré ne peut pas être validé directement (409)
+- ✓ Rejet : motif obligatoire, puis lien terminal et nouveau lien possible
+- ✓ Recette 7 : un référent ne valide pas un lien qui le concerne, un autre le peut
+- ✓ Recette 7 : même règle pour un lien qui concerne ses enfants
+- ✓ Conflit : file du référent signale les liens à traiter par un autre
+- ✓ L'admin est soumis à la même règle
+- ✓ Référent : droits limités à sa branche ; membre interdit
+- ✓ Validation du père et de la mère : l'union passe en validée
+- ✓ Invitation : URL wa.me à jeton unique, jeton haché en base
+- ✓ Invitation : réservée au déclarant
+- ✓ Confirmation : Oui fait passer le lien à confirmé, sans compte, une seule fois
+- ✓ Confirmation : Non envoie en examen, Je ne sais pas ne change rien
+- ✓ Confirmation : le déclarant ne confirme pas son propre lien
+- ✓ Confirmation : invitation expirée ou jeton inconnu
+- ✓ Page web de confirmation : question affichée, réponse enregistrée, échappement
+- ✓ Passer en privé : motif, fiche masquée aux membres, visible du référent
+- ✓ Rattachement à une branche : référent de la branche d'origine, journalisé
+- ✓ Relance à 60 jours (date simulée), puis tous les 30 jours, 3 fois maximum
+- ✓ Relance : délai lu depuis les paramètres
+- ✓ Recette 4 : ZOCLI / ZOKLI, même prénom, même père, années voisines signalés
+- ✓ Doublons : poids du paramètre « prénom requis »
+- ✓ Doublons : réservés aux référents, à leur branche, sans conflit
+- ✓ Recette 5 : fusion puis annulation restituent exactement tout (ligne à ligne)
+- ✓ Fusion : parents différents refusés, rien n'est modifié
+- ✓ Fusion : plus récente d'abord à l'annulation
+- ✓ Une paire déclarée distincte n'est plus jamais proposée
+- ✓ Journal : UPDATE et DELETE refusés par la base
+- ✓ Journal : chaque type d'action est tracé (qui, quoi, fiche, quand)
+- ✓ Polygamie : enfants d'un père regroupés par mère, dans l'ordre du rang
+- ✓ Arbre membre : liens validés seulement, sans téléphone ni fiche privée
+- ✓ Arbre référent : provisoires visibles et distingués, privés de sa branche inclus
+- ✓ Arbre : charge par niveaux (profondeur bornée, a_suite signalé)
+- ✓ Paramètre arbre_visible_membres : membre refusé, référent autorisé
+- ✓ Paramètre generations_lignee_feminine : limite la descendance par les filles
+- ✓ Stats : par branche et par statut, limitées à la branche du référent
+- ✓ Journal : référent limité à sa branche, admin complet, membre refusé
+- ✓ GEDCOM : en-tête, dates approximatives, polygamie, TRLR
+- ✓ Recette 8 (partie) : GEDCOM limité aux liens validés
+- ✓ Recette 8 : le fichier GEDCOM s'ouvre dans Gramps sans erreur
+- ✓ CSV : BOM UTF-8, point-virgule, téléphone conservé, formule neutralisée
+- ✓ Exports réservés à l'admin et journalisés
+- ✓ Recette 6 : balayage de toutes les routes, un membre n'obtient ni téléphone ni fiche privée
+- ✓ Recette 6 : routes d'administration et de référent refusées au membre
+- ✓ Un référent n'accède pas aux routes d'administration
+- ✓ Branches, rôles, variantes et paramètres pilotés sans redéploiement
+- ✓ Sauvegarde (mysqldump) puis restauration complète à l'identique
+- ✓ Sauvegarde (repli PHP) puis restauration complète à l'identique
+- ✓ Sauvegarde : rotation à 7 quotidiennes et 4 hebdomadaires, nom de fichier contrôlé
+- ✓ Tâches : verrou contre deux exécutions simultanées, pseudo-cron
+- ✓ Admin : mot de passe faux refusé, sans page protégée sans session
+- ✓ Admin : connexion en deux facteurs, en-têtes de sécurité, cookie durci
+- ✓ Admin : une requête POST sans jeton CSRF est refusée
+- ✓ Admin : toutes les pages répondent
+- ✓ Admin : saisie du fondateur et d'une branche, échappement HTML
+- ✓ Admin : paramètres, rôles, tâches et sauvegardes par le panneau
+- ✓ Droits : un référent n'accède pas aux pages admin, mais à ses files
+- ✓ Droits : un membre n'entre pas dans le panneau
+- ✓ Référent web : valide un lien par le panneau, conflit affiché
+- ✓ Admin : annulation d'une fusion depuis le panneau
